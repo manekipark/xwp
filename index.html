@@ -593,6 +593,73 @@
     color: #fff;
     font-weight: 900;
   }
+  .tutorial-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 24;
+    pointer-events: none;
+  }
+  .tutorial-overlay.hidden { display: none; }
+  .tutorial-pulse {
+    position: fixed;
+    left: var(--tutorial-start-x, 50vw);
+    top: var(--tutorial-start-y, 40vh);
+    width: 44px;
+    height: 44px;
+    border: 4px solid #09a7df;
+    border-radius: 8px;
+    transform: translate(-50%, -50%);
+    opacity: 0;
+  }
+  .tutorial-hand {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 72px;
+    height: 72px;
+    color: #fff;
+    filter: drop-shadow(0 4px 0 rgba(0, 0, 0, .35));
+    transform: translate(var(--tutorial-start-x, 50vw), var(--tutorial-start-y, 40vh)) translate(-16px, -58px) rotate(-12deg);
+    opacity: 0;
+  }
+  .tutorial-hand svg {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+  .tutorial-hand path {
+    fill: #fffdf8;
+    stroke: #111;
+    stroke-width: 5;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+  }
+  .tutorial-hand .tap-line {
+    fill: none;
+    stroke: #111;
+    stroke-width: 5;
+  }
+  .tutorial-overlay.is-running .tutorial-pulse {
+    animation: tutorialPulse 4.8s ease-out both;
+  }
+  .tutorial-overlay.is-running .tutorial-hand {
+    animation: tutorialHand 4.8s ease-in-out both;
+  }
+  @keyframes tutorialPulse {
+    0%, 8% { opacity: 0; transform: translate(-50%, -50%) scale(.72); }
+    15%, 32% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    42%, 100% { opacity: 0; transform: translate(-50%, -50%) scale(1.35); }
+  }
+  @keyframes tutorialHand {
+    0% { opacity: 0; transform: translate(var(--tutorial-start-x), var(--tutorial-start-y)) translate(-18px, -62px) rotate(-12deg) scale(.92); }
+    10% { opacity: 1; }
+    24% { transform: translate(var(--tutorial-start-x), var(--tutorial-start-y)) translate(-10px, -48px) rotate(-12deg) scale(.86); }
+    36% { transform: translate(var(--tutorial-start-x), var(--tutorial-start-y)) translate(-18px, -62px) rotate(-12deg) scale(.92); }
+    62% { opacity: .76; transform: translate(var(--tutorial-end-x), var(--tutorial-end-y)) translate(-12px, -58px) rotate(-12deg) scale(.9); }
+    78% { opacity: 1; transform: translate(var(--tutorial-end-x), var(--tutorial-end-y)) translate(-6px, -44px) rotate(-12deg) scale(.84); }
+    92% { opacity: .7; transform: translate(var(--tutorial-end-x), var(--tutorial-end-y)) translate(-12px, -58px) rotate(-12deg) scale(.9); }
+    100% { opacity: 0; transform: translate(var(--tutorial-end-x), var(--tutorial-end-y)) translate(-12px, -58px) rotate(-12deg) scale(.9); }
+  }
 
   @media (max-width: 760px) {
     :root { --cell: 32px; }
@@ -743,12 +810,22 @@
           <button id="finalSolvedCloseBtn" type="button">閉じる</button>
         </div>
       </section>
+      <div id="tutorialOverlay" class="tutorial-overlay hidden" aria-hidden="true">
+        <div class="tutorial-pulse"></div>
+        <div class="tutorial-hand">
+          <svg viewBox="0 0 96 96" focusable="false" aria-hidden="true">
+            <path class="tap-line" d="M35 6 L35 0 M47 12 L55 5 M24 13 L17 6" />
+            <path d="M35 18 C40 18 43 21 43 26 L43 48 L48 43 C51 40 56 40 59 44 L62 48 L65 46 C69 44 73 45 75 49 L80 60 C83 66 81 73 75 77 L58 88 C52 92 44 91 39 86 L18 65 C15 62 15 57 18 54 C21 51 26 51 29 54 L35 60 Z" />
+          </svg>
+        </div>
+      </div>
     </div>
   </section>
 </main>
 
 <script>
 const STORAGE_KEY = "minamihama-crossword-v6";
+const TUTORIAL_KEY = "minamihama-crossword-v6-tutorial-seen";
 const KANA_ORDER = "アイウエオカキクケコガギグゲゴサシスセソザジズゼゾタチツテトダヂヅデドナニヌネノハヒフヘホバビブベボパピプペポマミムメモヤユヨャュョラリルレロワヲンー!";
 const FINAL_ANSWER = "タイセツナイノチ";
 const FINAL_KEYPOINTS = [
@@ -883,6 +960,7 @@ const completionModal = document.getElementById("completionModal");
 const completionCloseBtn = document.getElementById("completionCloseBtn");
 const finalSolvedModal = document.getElementById("finalSolvedModal");
 const finalSolvedCloseBtn = document.getElementById("finalSolvedCloseBtn");
+const tutorialOverlay = document.getElementById("tutorialOverlay");
 
 let cellMap = new Map();
 let selectedKey = null;
@@ -1810,6 +1888,67 @@ mapView.addEventListener("wheel", e => {
   applyMapTransform();
 }, { passive: false });
 
+function hasSeenTutorial() {
+  try {
+    return localStorage.getItem(TUTORIAL_KEY) === "1";
+  } catch (_) {
+    return true;
+  }
+}
+
+function markTutorialSeen() {
+  try {
+    localStorage.setItem(TUTORIAL_KEY, "1");
+  } catch (_) {}
+}
+
+function firstTutorialCellKey() {
+  const preferred = words.find(w => w.id === "a1");
+  const ordered = preferred ? [preferred, ...words.filter(w => w.id !== preferred.id)] : words;
+  for (const w of ordered) {
+    const pos = wordCells(w).find(p => {
+      if (!isAnswerCharacter(p.ch)) return false;
+      const input = document.querySelector(`[data-key="${key(p.r, p.c)}"] input`);
+      return !input?.value;
+    });
+    if (pos) return key(pos.r, pos.c);
+  }
+  return null;
+}
+
+function rectCenter(rect) {
+  return {
+    x: rect.left + rect.width / 2,
+    y: rect.top + rect.height / 2
+  };
+}
+
+function showTutorialOnce() {
+  if (!tutorialOverlay || hasSeenTutorial() || currentMode !== "answer" || finalChallengeOpen) return;
+  const targetKey = firstTutorialCellKey();
+  if (!targetKey) return;
+  selectCell(targetKey);
+  requestAnimationFrame(() => {
+    const cell = document.querySelector(`[data-key="${targetKey}"]`);
+    const keyButton = kanaKeys.querySelector(".kana-key");
+    if (!cell || !keyButton) return;
+    const start = rectCenter(cell.getBoundingClientRect());
+    const end = rectCenter(keyButton.getBoundingClientRect());
+    tutorialOverlay.style.setProperty("--tutorial-start-x", `${start.x}px`);
+    tutorialOverlay.style.setProperty("--tutorial-start-y", `${start.y}px`);
+    tutorialOverlay.style.setProperty("--tutorial-end-x", `${end.x}px`);
+    tutorialOverlay.style.setProperty("--tutorial-end-y", `${end.y}px`);
+    tutorialOverlay.classList.remove("hidden", "is-running");
+    void tutorialOverlay.offsetWidth;
+    tutorialOverlay.classList.add("is-running");
+    markTutorialSeen();
+    setTimeout(() => {
+      tutorialOverlay.classList.add("hidden");
+      tutorialOverlay.classList.remove("is-running");
+    }, 5000);
+  });
+}
+
 function setMode(mode) {
   currentMode = mode;
   answerTab.setAttribute("aria-selected", String(mode === "answer"));
@@ -1840,7 +1979,10 @@ function setMode(mode) {
 document.getElementById("startBtn").addEventListener("click", () => {
   homeScreen.classList.add("hidden");
   gameScreen.classList.remove("hidden");
-  setTimeout(centerBoard, 50);
+  setTimeout(() => {
+    centerBoard();
+    showTutorialOnce();
+  }, 80);
 });
 answerTab.addEventListener("click", () => setMode("answer"));
 mapTab.addEventListener("click", () => setMode(currentMode === "map" ? "answer" : "map"));
