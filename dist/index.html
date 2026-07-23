@@ -622,18 +622,33 @@
     transform: translate(var(--tutorial-start-x, 50vw), var(--tutorial-start-y, 40vh)) translate(-16px, -58px) rotate(-12deg);
     opacity: 0;
   }
-  .tutorial-overlay.is-running .tutorial-pulse {
-    animation: tutorialPulse 4.8s ease-out infinite;
+  .tutorial-overlay.is-cell .tutorial-pulse {
+    animation: tutorialPulse 2.2s ease-out infinite;
   }
-  .tutorial-overlay.is-running .tutorial-hand {
-    animation: tutorialHand 4.8s ease-in-out infinite;
+  .tutorial-overlay.is-cell .tutorial-hand {
+    animation: tutorialTapCell 2.2s ease-in-out infinite;
+  }
+  .tutorial-overlay.is-key .tutorial-pulse {
+    left: var(--tutorial-end-x, 50vw);
+    top: var(--tutorial-end-y, 72vh);
+    animation: tutorialPulse 3.8s ease-out infinite;
+  }
+  .tutorial-overlay.is-key .tutorial-hand {
+    animation: tutorialChooseKey 3.8s ease-in-out infinite;
   }
   @keyframes tutorialPulse {
     0%, 8% { opacity: 0; transform: translate(-50%, -50%) scale(.72); }
     15%, 32% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
     42%, 100% { opacity: 0; transform: translate(-50%, -50%) scale(1.35); }
   }
-  @keyframes tutorialHand {
+  @keyframes tutorialTapCell {
+    0% { opacity: 0; transform: translate(var(--tutorial-start-x), var(--tutorial-start-y)) translate(-18px, -62px) rotate(-12deg) scale(.92); }
+    14% { opacity: 1; }
+    38% { transform: translate(var(--tutorial-start-x), var(--tutorial-start-y)) translate(-8px, -46px) rotate(-12deg) scale(.84); }
+    58% { transform: translate(var(--tutorial-start-x), var(--tutorial-start-y)) translate(-18px, -62px) rotate(-12deg) scale(.92); }
+    100% { opacity: 0; transform: translate(var(--tutorial-start-x), var(--tutorial-start-y)) translate(-18px, -62px) rotate(-12deg) scale(.92); }
+  }
+  @keyframes tutorialChooseKey {
     0% { opacity: 0; transform: translate(var(--tutorial-start-x), var(--tutorial-start-y)) translate(-18px, -62px) rotate(-12deg) scale(.92); }
     10% { opacity: 1; }
     24% { transform: translate(var(--tutorial-start-x), var(--tutorial-start-y)) translate(-10px, -48px) rotate(-12deg) scale(.86); }
@@ -803,7 +818,7 @@
 
 <script>
 const STORAGE_KEY = "minamihama-crossword-v6";
-const TUTORIAL_KEY = "minamihama-crossword-v6-tutorial-seen-v2";
+const TUTORIAL_KEY = "minamihama-crossword-v6-tutorial-seen-v3";
 const KANA_ORDER = "アイウエオカキクケコガギグゲゴサシスセソザジズゼゾタチツテトダヂヅデドナニヌネノハヒフヘホバビブベボパピプペポマミムメモヤユヨャュョラリルレロワヲンー!";
 const FINAL_ANSWER = "タイセツナイノチ";
 const FINAL_KEYPOINTS = [
@@ -952,6 +967,8 @@ let mapTransform = { x: 0, y: 0, scale: 1 };
 let mapPointers = new Map();
 let mapLastPinch = null;
 let mapDragStart = null;
+let tutorialPhase = null;
+let tutorialTargetKey = null;
 let tapCycle = { key: null, index: 0 };
 let lastBlankTap = 0;
 let blankLongPress = null;
@@ -1904,37 +1921,63 @@ function rectCenter(rect) {
 function hideTutorial() {
   if (!tutorialOverlay) return;
   tutorialOverlay.classList.add("hidden");
-  tutorialOverlay.classList.remove("is-running");
+  tutorialOverlay.classList.remove("is-cell", "is-key");
+  tutorialPhase = null;
+  tutorialTargetKey = null;
   document.removeEventListener("pointerdown", onTutorialPointerDown, true);
 }
 
 function onTutorialPointerDown(e) {
   const target = e.target;
-  if (target.closest?.(".cell") || target.closest?.(".kana-key")) {
+  const cell = target.closest?.(".cell");
+  if (tutorialPhase === "cell" && cell) {
+    tutorialTargetKey = cell.dataset.key || tutorialTargetKey;
+    requestAnimationFrame(() => requestAnimationFrame(showTutorialKeyStep));
+    return;
+  }
+  if (tutorialPhase === "key" && target.closest?.(".kana-key")) {
     markTutorialSeen();
     hideTutorial();
   }
+}
+
+function showTutorialCellStep(targetKey) {
+  const cell = document.querySelector(`[data-key="${targetKey}"]`);
+  if (!cell) return;
+  const start = rectCenter(cell.getBoundingClientRect());
+  tutorialTargetKey = targetKey;
+  tutorialPhase = "cell";
+  tutorialOverlay.style.setProperty("--tutorial-start-x", `${start.x}px`);
+  tutorialOverlay.style.setProperty("--tutorial-start-y", `${start.y}px`);
+  tutorialOverlay.classList.remove("hidden", "is-cell", "is-key");
+  void tutorialOverlay.offsetWidth;
+  tutorialOverlay.classList.add("is-cell");
+  document.addEventListener("pointerdown", onTutorialPointerDown, true);
+}
+
+function showTutorialKeyStep() {
+  if (!tutorialOverlay || tutorialPhase !== "cell") return;
+  const cell = tutorialTargetKey ? document.querySelector(`[data-key="${tutorialTargetKey}"]`) : document.querySelector(".cell.selected");
+  const keyButton = kanaKeys.querySelector(".kana-key");
+  if (!cell || !keyButton) return;
+  const start = rectCenter(cell.getBoundingClientRect());
+  const end = rectCenter(keyButton.getBoundingClientRect());
+  tutorialPhase = "key";
+  tutorialOverlay.style.setProperty("--tutorial-start-x", `${start.x}px`);
+  tutorialOverlay.style.setProperty("--tutorial-start-y", `${start.y}px`);
+  tutorialOverlay.style.setProperty("--tutorial-end-x", `${end.x}px`);
+  tutorialOverlay.style.setProperty("--tutorial-end-y", `${end.y}px`);
+  tutorialOverlay.classList.remove("hidden", "is-cell", "is-key");
+  void tutorialOverlay.offsetWidth;
+  tutorialOverlay.classList.add("is-key");
 }
 
 function showTutorialOnce() {
   if (!tutorialOverlay || hasSeenTutorial() || currentMode !== "answer" || finalChallengeOpen) return;
   const targetKey = firstTutorialCellKey();
   if (!targetKey) return;
-  selectCell(targetKey);
   requestAnimationFrame(() => {
-    const cell = document.querySelector(`[data-key="${targetKey}"]`);
-    const keyButton = kanaKeys.querySelector(".kana-key");
-    if (!cell || !keyButton) return;
-    const start = rectCenter(cell.getBoundingClientRect());
-    const end = rectCenter(keyButton.getBoundingClientRect());
-    tutorialOverlay.style.setProperty("--tutorial-start-x", `${start.x}px`);
-    tutorialOverlay.style.setProperty("--tutorial-start-y", `${start.y}px`);
-    tutorialOverlay.style.setProperty("--tutorial-end-x", `${end.x}px`);
-    tutorialOverlay.style.setProperty("--tutorial-end-y", `${end.y}px`);
-    tutorialOverlay.classList.remove("hidden", "is-running");
-    void tutorialOverlay.offsetWidth;
-    tutorialOverlay.classList.add("is-running");
-    document.addEventListener("pointerdown", onTutorialPointerDown, true);
+    showTutorialCellStep(targetKey);
   });
 }
 
