@@ -615,35 +615,18 @@
     position: fixed;
     left: 0;
     top: 0;
-    width: 72px;
-    height: 72px;
-    color: #fff;
+    width: 76px;
+    height: 76px;
+    background: url("assets/tutorial-hand.png") center center / contain no-repeat;
     filter: drop-shadow(0 4px 0 rgba(0, 0, 0, .35));
     transform: translate(var(--tutorial-start-x, 50vw), var(--tutorial-start-y, 40vh)) translate(-16px, -58px) rotate(-12deg);
     opacity: 0;
   }
-  .tutorial-hand svg {
-    width: 100%;
-    height: 100%;
-    overflow: visible;
-  }
-  .tutorial-hand path {
-    fill: #fffdf8;
-    stroke: #111;
-    stroke-width: 5;
-    stroke-linejoin: round;
-    stroke-linecap: round;
-  }
-  .tutorial-hand .tap-line {
-    fill: none;
-    stroke: #111;
-    stroke-width: 5;
-  }
   .tutorial-overlay.is-running .tutorial-pulse {
-    animation: tutorialPulse 4.8s ease-out both;
+    animation: tutorialPulse 4.8s ease-out infinite;
   }
   .tutorial-overlay.is-running .tutorial-hand {
-    animation: tutorialHand 4.8s ease-in-out both;
+    animation: tutorialHand 4.8s ease-in-out infinite;
   }
   @keyframes tutorialPulse {
     0%, 8% { opacity: 0; transform: translate(-50%, -50%) scale(.72); }
@@ -812,12 +795,7 @@
       </section>
       <div id="tutorialOverlay" class="tutorial-overlay hidden" aria-hidden="true">
         <div class="tutorial-pulse"></div>
-        <div class="tutorial-hand">
-          <svg viewBox="0 0 96 96" focusable="false" aria-hidden="true">
-            <path class="tap-line" d="M35 6 L35 0 M47 12 L55 5 M24 13 L17 6" />
-            <path d="M35 18 C40 18 43 21 43 26 L43 48 L48 43 C51 40 56 40 59 44 L62 48 L65 46 C69 44 73 45 75 49 L80 60 C83 66 81 73 75 77 L58 88 C52 92 44 91 39 86 L18 65 C15 62 15 57 18 54 C21 51 26 51 29 54 L35 60 Z" />
-          </svg>
-        </div>
+        <div class="tutorial-hand"></div>
       </div>
     </div>
   </section>
@@ -1923,6 +1901,21 @@ function rectCenter(rect) {
   };
 }
 
+function hideTutorial() {
+  if (!tutorialOverlay) return;
+  tutorialOverlay.classList.add("hidden");
+  tutorialOverlay.classList.remove("is-running");
+  document.removeEventListener("pointerdown", onTutorialPointerDown, true);
+}
+
+function onTutorialPointerDown(e) {
+  const target = e.target;
+  if (target.closest?.(".cell") || target.closest?.(".kana-key")) {
+    markTutorialSeen();
+    hideTutorial();
+  }
+}
+
 function showTutorialOnce() {
   if (!tutorialOverlay || hasSeenTutorial() || currentMode !== "answer" || finalChallengeOpen) return;
   const targetKey = firstTutorialCellKey();
@@ -1941,11 +1934,7 @@ function showTutorialOnce() {
     tutorialOverlay.classList.remove("hidden", "is-running");
     void tutorialOverlay.offsetWidth;
     tutorialOverlay.classList.add("is-running");
-    markTutorialSeen();
-    setTimeout(() => {
-      tutorialOverlay.classList.add("hidden");
-      tutorialOverlay.classList.remove("is-running");
-    }, 5000);
+    document.addEventListener("pointerdown", onTutorialPointerDown, true);
   });
 }
 
