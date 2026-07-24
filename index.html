@@ -437,6 +437,11 @@
     background: #09a7df;
     color: #fff;
   }
+  .active-letter.is-held,
+  .final-slot.is-held {
+    outline: 4px dashed #f2a900;
+    outline-offset: 2px;
+  }
   .kana-keys {
     display: flex;
     flex-wrap: wrap;
@@ -509,6 +514,11 @@
     color: var(--ink);
     font-size: clamp(16px, 5vw, 21px);
     font-weight: 900;
+  }
+  .final-slot.is-empty {
+    color: var(--muted);
+    border-style: dashed;
+    background: #f6f1e8;
   }
   .final-answer.is-empty::before {
     content: none;
@@ -969,6 +979,8 @@ let mapLastPinch = null;
 let mapDragStart = null;
 let tutorialPhase = null;
 let tutorialTargetKey = null;
+let activeMoveKey = null;
+let activeSlotTap = { key: null, time: 0 };
 let tapCycle = { key: null, index: 0 };
 let lastBlankTap = 0;
 let blankLongPress = null;
@@ -976,6 +988,8 @@ let blankPressStart = null;
 let puzzleCompleted = false;
 let finalChallengeOpen = false;
 let finalSelection = [];
+let finalMoveIndex = null;
+let finalSlotTap = { index: null, time: 0 };
 let finalSolvedAnnounced = false;
 
 function key(r, c) { return `${r},${c}`; }
@@ -1240,6 +1254,53 @@ function renderKeyboard() {
   });
 }
 
+function inputForKey(k) {
+  return document.querySelector(`[data-key="${k}"] input`);
+}
+
+function updateInputState(input) {
+  if (!input) return;
+  validateCell(input);
+}
+
+function moveActiveLetter(fromKey, toKey) {
+  const from = inputForKey(fromKey);
+  const to = inputForKey(toKey);
+  if (!from || !to || from === to || !from.value) return;
+  const fromAnswer = from.closest(".cell")?.dataset.answer || "";
+  const toAnswer = to.closest(".cell")?.dataset.answer || "";
+  if (!isAnswerCharacter(fromAnswer) || !isAnswerCharacter(toAnswer)) return;
+  const fromValue = from.value;
+  from.value = to.value || "";
+  to.value = fromValue;
+  updateInputState(from);
+  updateInputState(to);
+  activeMoveKey = null;
+  activeSlotTap = { key: null, time: 0 };
+  save();
+  refreshCurrentHint();
+  checkCompletion({ announce: true });
+  selectCell(toKey);
+  to.focus();
+  renderKeyboard();
+}
+
+function clearInputByKey(k) {
+  const input = inputForKey(k);
+  if (!input) return;
+  const answer = input.closest(".cell")?.dataset.answer || "";
+  if (!isAnswerCharacter(answer) || !input.value) return;
+  input.value = "";
+  input.closest(".cell")?.classList.remove("correct", "wrong");
+  activeMoveKey = null;
+  activeSlotTap = { key: null, time: 0 };
+  save();
+  refreshCurrentHint();
+  checkCompletion();
+  selectCell(k);
+  renderKeyboard();
+}
+
 function renderActiveAnswer() {
   activeAnswer.replaceChildren();
   const w = activeWord();
@@ -1253,11 +1314,26 @@ function renderActiveAnswer() {
     button.className = "active-letter";
     button.classList.toggle("is-empty", !input?.value);
     button.classList.toggle("is-current", k === selectedKey);
+    button.classList.toggle("is-held", !!input?.value && k === activeMoveKey);
     button.textContent = input?.value || "□";
-    button.setAttribute("aria-label", `${pos.r}行${pos.c}列へ移動`);
-    button.addEventListener("click", () => {
+    button.setAttribute("aria-label", input?.value ? `${input.value}を移動` : `${pos.r}行${pos.c}列へ移動`);
+    button.addEventListener("click", e => {
+      e.preventDefault();
+      const now = Date.now();
+      if (input?.value && activeSlotTap.key === k && now - activeSlotTap.time < 340) {
+        activeSlotTap = { key: null, time: 0 };
+        clearInputByKey(k);
+        return;
+      }
+      activeSlotTap = { key: k, time: now };
+      if (activeMoveKey && activeMoveKey !== k) {
+        moveActiveLetter(activeMoveKey, k);
+        return;
+      }
       selectCell(k);
       document.querySelector(`[data-key="${k}"] input`)?.focus();
+      activeMoveKey = input?.value ? k : null;
+      renderKeyboard();
     });
     activeAnswer.appendChild(button);
   });
@@ -1268,6 +1344,8 @@ function inputChoice(ch) {
   if (!input || !activeChoices().includes(ch)) return;
   if (!isAnswerCharacter(input.closest(".cell")?.dataset.answer || "")) return;
   input.value = ch;
+  activeMoveKey = null;
+  activeSlotTap = { key: null, time: 0 };
   validateCell(input);
   save();
   refreshCurrentHint();
@@ -1280,6 +1358,8 @@ function clearSelectedCell() {
   if (!isAnswerCharacter(input.closest(".cell")?.dataset.answer || "")) return;
   input.value = "";
   input.closest(".cell")?.classList.remove("correct", "wrong");
+  activeMoveKey = null;
+  activeSlotTap = { key: null, time: 0 };
   save();
   refreshCurrentHint();
   checkCompletion();
@@ -1351,7 +1431,11 @@ function showFinalChallenge(resetSelection = true, announce = false) {
   setFinalHintText();
   kanaKeyboard.classList.add("hidden");
   finalChallenge.classList.remove("hidden");
-  if (resetSelection) finalSelection = [];
+  if (resetSelection) {
+    finalSelection = [];
+    finalMoveIndex = null;
+    finalSlotTap = { index: null, time: 0 };
+  }
   renderFinalChallenge();
   if (announce && !wasCompleted) completionModal.classList.remove("hidden");
 }
@@ -1360,6 +1444,8 @@ function hideFinalChallenge() {
   puzzleCompleted = false;
   finalChallengeOpen = false;
   finalSelection = [];
+  finalMoveIndex = null;
+  finalSlotTap = { index: null, time: 0 };
   finalSolvedAnnounced = false;
   completionModal.classList.add("hidden");
   finalSolvedModal.classList.add("hidden");
@@ -1377,6 +1463,8 @@ function hideFinalChallenge() {
 
 function returnToBoard() {
   finalChallengeOpen = false;
+  finalMoveIndex = null;
+  finalSlotTap = { index: null, time: 0 };
   completionModal.classList.add("hidden");
   finalSolvedModal.classList.add("hidden");
   finalChallenge.classList.add("hidden");
@@ -1405,10 +1493,28 @@ function renderFinalChallenge() {
     button.className = "final-slot";
     button.textContent = item?.ch || "□";
     button.classList.toggle("is-empty", !item);
+    button.classList.toggle("is-held", item && index === finalMoveIndex);
     button.disabled = !item;
     if (item) {
-      button.addEventListener("click", () => {
-        finalSelection = finalSelection.filter(selected => selected.id !== item.id);
+      button.addEventListener("click", e => {
+        e.preventDefault();
+        const now = Date.now();
+        if (finalSlotTap.index === index && now - finalSlotTap.time < 340) {
+          finalSelection = finalSelection.filter(selected => selected.id !== item.id);
+          finalMoveIndex = null;
+          finalSlotTap = { index: null, time: 0 };
+          renderFinalChallenge();
+          return;
+        }
+        finalSlotTap = { index, time: now };
+        if (finalMoveIndex === null || finalMoveIndex === index) {
+          finalMoveIndex = index;
+        } else {
+          const held = finalSelection[finalMoveIndex];
+          finalSelection[finalMoveIndex] = item;
+          finalSelection[index] = held;
+          finalMoveIndex = null;
+        }
         renderFinalChallenge();
       });
     }
@@ -1449,6 +1555,7 @@ function finalChip(item, inAnswer) {
     } else if (!finalSelection.some(selected => selected.id === item.id)) {
       finalSelection.push(item);
     }
+    finalMoveIndex = null;
     renderFinalChallenge();
   });
   return button;
@@ -2023,6 +2130,8 @@ backCellBtn.addEventListener("click", movePrevious);
 finalBackBtn.addEventListener("click", returnToBoard);
 finalClearBtn.addEventListener("click", () => {
   finalSelection = [];
+  finalMoveIndex = null;
+  finalSlotTap = { index: null, time: 0 };
   finalSolvedAnnounced = false;
   finalSolvedModal.classList.add("hidden");
   renderFinalChallenge();
