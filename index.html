@@ -1320,7 +1320,7 @@ function renderActiveAnswer() {
     button.addEventListener("click", e => {
       e.preventDefault();
       const now = Date.now();
-      if (input?.value && activeSlotTap.key === k && now - activeSlotTap.time < 340) {
+      if (input?.value && activeSlotTap.key === k && now - activeSlotTap.time < 700) {
         activeSlotTap = { key: null, time: 0 };
         clearInputByKey(k);
         return;
@@ -1499,7 +1499,7 @@ function renderFinalChallenge() {
       button.addEventListener("click", e => {
         e.preventDefault();
         const now = Date.now();
-        if (finalSlotTap.index === index && now - finalSlotTap.time < 340) {
+        if (finalSlotTap.index === index && now - finalSlotTap.time < 700) {
           finalSelection = finalSelection.filter(selected => selected.id !== item.id);
           finalMoveIndex = null;
           finalSlotTap = { index: null, time: 0 };
