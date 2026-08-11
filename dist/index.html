@@ -61,30 +61,39 @@
 
   .home-screen {
     flex-direction: column;
-    align-items: stretch;
-    justify-content: end;
-    background:
-      linear-gradient(180deg, rgba(10, 54, 37, .02) 0%, rgba(10, 54, 37, .08) 56%, rgba(10, 54, 37, .56) 100%),
-      url("assets/title.png?v=20260811-title4") center top / min(100vw, 2048px) auto no-repeat,
-      #15583e;
-    padding: clamp(16px, 3.2vw, 42px);
-    overflow: auto;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(180deg, #eaf9ff 0%, #cceeff 58%, #b5e3f6 100%);
+    padding: clamp(14px, 2.5vw, 28px);
+    overflow: hidden;
   }
   .home-inner {
     position: relative;
     z-index: 1;
-    width: min(1160px, 100%);
+    width: min(960px, 100%);
+    height: 100%;
     margin: 0 auto;
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(300px, 380px);
-    gap: 28px;
-    align-items: end;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: clamp(10px, 2dvh, 18px);
   }
-  .home-art { display: none; }
+  .home-art {
+    display: block;
+    flex: 0 0 auto;
+    width: min(90vw, 820px, 90dvh);
+    aspect-ratio: 931 / 307;
+    background: url("assets/title.png?v=20260811-title4") center center / contain no-repeat;
+    filter: drop-shadow(0 7px 12px rgba(24, 92, 120, .18));
+  }
   .home-copy {
-    grid-column: 1;
-    align-self: end;
-    min-height: 1px;
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
     opacity: 0;
     pointer-events: none;
   }
@@ -104,13 +113,14 @@
     margin: 10px 0 0;
   }
   .home-panel {
-    grid-column: 2;
-    background: rgba(255, 253, 248, .94);
-    border: 2px solid #222;
+    width: min(92vw, 620px);
+    flex: 0 1 auto;
+    background: rgba(247, 253, 255, .97);
+    border: 2px solid #2c6f8e;
     border-radius: 8px;
     padding: 18px;
-    box-shadow: 0 12px 28px rgba(0, 0, 0, .22);
-    max-height: min(52dvh, 390px);
+    box-shadow: 0 12px 28px rgba(37, 111, 143, .22);
+    max-height: min(58dvh, 470px);
     overflow: auto;
     backdrop-filter: blur(4px);
   }
@@ -119,16 +129,23 @@
     font-size: 22px;
     line-height: 1.25;
   }
-  .home-panel p { margin: 0 0 16px; line-height: 1.65; color: var(--muted); }
+  .home-panel h2 { color: #174e68; }
+  .home-panel p { margin: 0 0 16px; line-height: 1.65; color: #35657a; }
   .terms-list {
     margin: 0 0 18px;
     padding-left: 1.2em;
-    color: var(--muted);
+    color: #35657a;
     line-height: 1.65;
     font-size: 14px;
   }
   .terms-list li { margin: 0 0 8px; }
   .start-btn { width: 100%; font-size: 20px; padding: 18px 28px; }
+  .home-screen .primary-btn {
+    background: #2b98c4;
+    border-color: #174e68;
+    box-shadow: 0 5px 0 #176586;
+  }
+  .home-screen .primary-btn:active { box-shadow: 0 1px 0 #176586; }
 
   .game-screen { display: block; background: #fff; overflow: hidden; }
   .app-frame {
@@ -151,7 +168,7 @@
   .main-area {
     position: fixed;
     inset: 0;
-    background: var(--paper);
+    background: #fff url("assets/background.jpg?v=20260811-bg1") center center / cover no-repeat;
     margin: 0;
     overflow: hidden;
     touch-action: none;
@@ -636,12 +653,41 @@
     background: rgba(33, 24, 21, .42);
   }
   .completion-card {
+    position: relative;
+    z-index: 2;
     width: min(92vw, 460px);
     background: #fffdf8;
     border: 2px solid #222;
     border-radius: 8px;
     padding: 22px;
     box-shadow: 0 14px 34px rgba(0, 0, 0, .24);
+  }
+  .confetti-layer {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .confetti-piece {
+    position: absolute;
+    left: var(--confetti-x, 50%);
+    top: -12vh;
+    width: var(--confetti-w, 10px);
+    height: var(--confetti-h, 18px);
+    border-radius: 2px;
+    background: var(--confetti-color, #ffe600);
+    opacity: 0;
+    animation: confettiFall var(--confetti-duration, 3.4s) var(--confetti-delay, 0s) linear infinite;
+  }
+  @keyframes confettiFall {
+    0% { opacity: 0; transform: translate3d(0, -8vh, 0) rotate(0deg); }
+    10% { opacity: 1; }
+    55% { transform: translate3d(var(--confetti-drift, 36px), 56vh, 0) rotate(420deg); }
+    100% { opacity: .9; transform: translate3d(var(--confetti-drift-end, -20px), 116vh, 0) rotate(840deg); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .confetti-piece { animation: none; display: none; }
   }
   .completion-card h2 {
     margin: 0 0 10px;
@@ -729,23 +775,23 @@
   @media (max-width: 760px) {
     :root { --cell: 32px; }
     .home-screen {
-      justify-content: start;
-      background: linear-gradient(180deg, #15583e 0%, #0f4a35 100%);
-      padding: clamp(18px, 5vw, 28px) 14px 14px;
+      justify-content: center;
+      background: linear-gradient(180deg, #eaf9ff 0%, #cceeff 58%, #b5e3f6 100%);
+      padding: clamp(12px, 3vw, 18px) 14px;
     }
     .home-inner {
-      grid-template-columns: 1fr;
-      grid-template-rows: auto auto;
-      align-items: end;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       gap: 10px;
     }
     .home-art {
       display: block;
-      width: 100%;
-      aspect-ratio: 3 / 1;
-      align-self: start;
+      width: min(92vw, 560px);
+      aspect-ratio: 931 / 307;
+      align-self: center;
       background: url("assets/title.png?v=20260811-title4") center center / contain no-repeat;
-      filter: drop-shadow(0 10px 18px rgba(0, 0, 0, .18));
+      filter: drop-shadow(0 7px 12px rgba(24, 92, 120, .18));
     }
     .home-copy {
       position: absolute;
@@ -757,9 +803,9 @@
       opacity: 0;
     }
     .home-panel {
-      grid-column: auto;
+      width: 100%;
       margin-top: 0;
-      max-height: none;
+      max-height: min(68dvh, 560px);
       padding: 14px;
     }
     .home-panel h2 { font-size: 19px; }
@@ -837,7 +883,7 @@
       <aside class="hint-panel">
         <div class="hint-head">
           <h2 id="hintTitle" class="hint-title">カギ</h2>
-          <button id="kanaToggleBtn" class="kana-toggle-btn" type="button" aria-pressed="false">ひらがな</button>
+          <button id="kanaToggleBtn" class="kana-toggle-btn" type="button" aria-pressed="false" aria-label="問題文をひらがなにする">ひらがな</button>
         </div>
         <p id="hintBody" class="hint-body">マスを選ぶと、ここにカギが表示されます。</p>
         <button id="goToMapBtn" class="clue-map-btn hidden" type="button">この場所へ行く</button>
@@ -870,6 +916,7 @@
         </div>
       </section>
       <section id="finalSolvedModal" class="completion-modal hidden" role="dialog" aria-modal="true" aria-labelledby="finalSolvedTitle">
+        <div id="confettiLayer" class="confetti-layer" aria-hidden="true"></div>
         <div class="completion-card">
           <h2 id="finalSolvedTitle">正解！</h2>
           <p>宝（たから）ものは、あなたの持っている大切な命（タイセツナイノチ）です。どうか、いつまでも大切にしてください。</p>
@@ -938,6 +985,44 @@ const clues = {
   d27: "さまざまなボランティア活動や世界中からの□□によって、この町にはたくさんの「＜ヨコ16＞」の言葉があふれました。",
   d28: "この公園では市民やNPO、企業などが参加して「命の□□□□□」進めています。",
   d29: "津波避難の三原則。「＜タテ3＞者たれ」「□□にとらわれるな」「最善をつくせ」。"
+};
+
+const cluesHiragana = {
+  a1: "このこうえんのせいしきめいしょうは、いしのまき□□つなみふっこう＜よこ12＞。",
+  a2: "しんさいの1かげつご、つなみにまけたくない、ちいきのひとをはげましたいというきもちでながされてきたもくざいをつかってつくられた□□□□□！□□のかんばん。",
+  a3: "しんさいではがすやでんき、＜よこ11＞などがつかえませんでした。ぼうさいぐっずやひじょうしょくなど、ひごろの□□□がじゅうようです。",
+  a4: "さいがいのきおくや＜たて22＞をつたえついでいくこと。みやぎひがしにほんだいしんさいつなみ□□かん。",
+  a5: "でんしょうこうりゅうしせつみーとかどのわきにてんじされている、ひよりようちえんのさとうあいりちゃんのおもいでのしなは、くれよんけーすとうわ□□。",
+  a6: "このちいきにつなみがきたのは、じしんはっせいからおよそ□□□□□ご。",
+  a7: "ちゅういほうやけいほう、ひなんしじがでたさいに、どこにいけばいいかまよわないように、□□□□□をかくにんしておくことがじゅうようです。",
+  a8: "さいがいのきおくやきょうくんを、こうせいにつたえるために、あえてのこしているたてものやばしょ。□□□□かどのわきしょうがっこう。",
+  a9: "このこうえんでは、しみん、えぬぴーおー、きぎょうなどのたようなしゅたいがかかわり、でんしょうかつどうや＜たて29＞、しみんかつどうなどのきょうどうのとりくみをおこなっています。そのちゅうしんとなるばしょです。",
+  a10: "いしのまき＜よこ1＞ふっこうきねんこうえんは、□□とでんしょうのためのきねんこうえんです。",
+  a11: "しんさいでは＜たて26＞やでんき、□□などがつかえませんでした。ぼうさいぐっずやひじょうしょくなど、ひごろの＜よこ3＞がじゅうようです。",
+  a12: "このこうえんのせいしきめいしょうは、いしのまき＜よこ1＞つなみふっこう□□□□。",
+  a13: "えどじだいからそんざいする、こうえんないをながれる□□□。しんさいまえは、すいろにふたをして、さくらなみきのりょくどうとなり、かどのわきしょうがっこうにかようじどうのつうがくろでした。",
+  a14: "あのひ、いちばんききたかったのは、「いってきます」とでかけていったかぞくの「□□□□」ということば。",
+  a15: "かどのわきしょうがっこうは、じしんだけでなく、つなみのひなん□□をしていたので、おおくのいのちをまもることができました。",
+  a16: "さまざまなぼらんてぃあかつどうや、せかいじゅうからの＜たて28＞によって、このまちにはたくさんの「□□□□□」のことばがあふれました。",
+  a17: "かどのわきしょうがっこうのせんせいとじどうがひなんしたことで、＜たて20＞がおきたことで、みえない□□□□で、ちいきの300にんいじょうがたすかりました。",
+  a18: "ひがしにほんだいしんさいでは、じしんやつなみ、かさいなどによって、おおきな□□があった。",
+  a19: "しんさいまえの、このちいきの3つのちょうめいのひとつ。かどのわきちょう、みなみはまちょう、もうひとつは？",
+  d16: "このちいきは、しんさいまえのはざーどまっぷでは、つなみがくるえりあではなかったため、□□だとかんちがいしていたかたがおおかった。",
+  d17: "つなみひなんのさんげんそく。「□□□□しゃたれ」「＜たて30＞にとらわれるな」「さいぜんをつくせ」。",
+  d19: "しんさいじは、おおくのしみんが、つなみからにげるためにかけあがったひなんばしょです。",
+  d20: "かどのわきしょうがっこうのせんせいとじどうがひなんしたことで、□□□□□がおきたことで、みえない＜よこ17＞で、ちいきの300にんいじょうがたすかりました。",
+  d21: "こんくりーとのたてものにあたったつなみで、じめんがほられ、そのばしょがしっちかしたとかんがえられています。",
+  d22: "かこのきょだいじしんやつなみによる、じんだいなひがいからえられた「いのちをまもるためのちえとそなえ」のことを、なんという？",
+  d23: "しぜんげんしょうやじこによって、いのち、ざいさん、いんふらなどに、おおきなひがいがでること。",
+  d24: "いまは、かどのわきちゅうしゃじょうがあるばしょに、たてもののどだいと、ようじようぷーるのあとがのこっています。",
+  d24a: "かどのわきしょうがっこうは、1かいまでつなみのひがいをうけました。2かいよりたかいばしょの、やけこげたかべなどは、□□□□のえいきょうです。",
+  d24b: "いまは、いっちょうめのおかがあるばしょにたっていた、いしのまきしのいりょうのちゅうしんしせつ。",
+  d25: "えどじだいからそんざいする、こうえんないをながれる＜よこ13＞。しんさいまえは、すいろにふたをして、さくらなみきのりょくどうとなり、かどのわきしょうがっこうにかようじどうの□□□でした。",
+  d26: "しんさいでは、がすや□□、＜よこ11＞などがつかえませんでした。ぼうさいぐっずやひじょうしょくなど、ひごろの＜よこ3＞がじゅうようです。",
+  d26b: "かどのわきしょうがっこうの6ねんせいは、1しゅうかんごに□□□のよていでした。1かげつごに、ひなんさきのかどのわきちゅうがっこうのひとへやで、さいわいにもえのこったしょうしょをわたしておこないました。",
+  d27: "さまざまなぼらんてぃあかつどうや、せかいじゅうからの□□によって、このまちにはたくさんの「＜よこ16＞」のことばがあふれました。",
+  d28: "このこうえんでは、しみんやえぬぴーおー、きぎょうなどがさんかして、「いのちの□□□□□」をすすめています。",
+  d29: "つなみひなんのさんげんそく。「＜たて3＞しゃたれ」「□□にとらわれるな」「さいぜんをつくせ」。"
 };
 
 const mapPoints = {
@@ -1022,6 +1107,7 @@ const completionModal = document.getElementById("completionModal");
 const completionCloseBtn = document.getElementById("completionCloseBtn");
 const finalSolvedModal = document.getElementById("finalSolvedModal");
 const finalSolvedCloseBtn = document.getElementById("finalSolvedCloseBtn");
+const confettiLayer = document.getElementById("confettiLayer");
 const tutorialOverlay = document.getElementById("tutorialOverlay");
 
 let cellMap = new Map();
@@ -1050,7 +1136,7 @@ let finalSelection = [];
 let finalMoveIndex = null;
 let finalSlotTap = { index: null, time: 0 };
 let finalSolvedAnnounced = false;
-let kanaDisplay = "katakana";
+let clueReadingMode = false;
 
 function key(r, c) { return `${r},${c}`; }
 function wordCells(w) {
@@ -1064,7 +1150,7 @@ function dirLabel(d) { return d === "across" ? "ヨコ" : "タテ"; }
 function mapLabel(w) { return w ? `${dirLabel(w.d)}${w.n}` : "カギ"; }
 
 function wordByReference(dirText, numberText) {
-  const dir = dirText.charCodeAt(0) === 0x30e8 ? "across" : "down";
+  const dir = /^[ヨよ]/.test(dirText) ? "across" : "down";
   const number = Number(numberText);
   return words.find(w => w.d === dir && w.n === number);
 }
@@ -1079,10 +1165,11 @@ function isWordSolved(w) {
 }
 
 function clueFor(w) {
-  const clue = clues[w.id] || clues[w.alias] || "このカギは確認中です。";
-  return clue.replace(/＜(ヨコ|タテ)(\d+)＞/g, (match, dir, number) => {
+  const clueSet = clueReadingMode ? cluesHiragana : clues;
+  const clue = clueSet[w.id] || clueSet[w.alias] || (clueReadingMode ? "このかぎはかくにんちゅうです。" : "このカギは確認中です。");
+  return clue.replace(/＜(ヨコ|タテ|よこ|たて)(\d+)＞/g, (match, dir, number) => {
     const referenced = wordByReference(dir, number);
-    return isWordSolved(referenced) ? displayKana(referenced.answer) : match;
+    return isWordSolved(referenced) ? (clueReadingMode ? hiraganaKana(referenced.answer) : referenced.answer) : match;
   });
 }
 
@@ -1093,10 +1180,8 @@ function canonicalKana(value) {
     .replace(/[a-z]/g, ch => ch.toUpperCase());
 }
 
-function displayKana(value) {
-  const canonical = canonicalKana(value);
-  if (kanaDisplay !== "hiragana") return canonical;
-  return canonical.replace(/[ァ-ヶ]/g, ch => String.fromCharCode(ch.charCodeAt(0) - 0x60));
+function hiraganaKana(value) {
+  return canonicalKana(value).replace(/[ァ-ヶ]/g, ch => String.fromCharCode(ch.charCodeAt(0) - 0x60));
 }
 
 function normalizeKana(value) {
@@ -1183,7 +1268,7 @@ function createCells() {
     });
     input.addEventListener("focus", () => selectCell(input.dataset.key, false));
     input.addEventListener("input", () => {
-      input.value = displayKana(normalizeKana(input.value));
+      input.value = normalizeKana(input.value);
       validateCell(input);
       save();
       refreshCurrentHint();
@@ -1278,8 +1363,8 @@ function renderKeyboard() {
     const button = document.createElement("button");
     button.type = "button";
     button.className = "kana-key";
-    button.textContent = displayKana(ch);
-    button.setAttribute("aria-label", `${displayKana(ch)}を入力`);
+    button.textContent = ch;
+    button.setAttribute("aria-label", `${ch}を入力`);
     button.addEventListener("click", () => inputChoice(ch));
     kanaKeys.appendChild(button);
   });
@@ -1374,7 +1459,7 @@ function inputChoice(ch) {
   const input = currentInput();
   if (!input || !activeChoices().includes(ch)) return;
   if (!isAnswerCharacter(input.closest(".cell")?.dataset.answer || "")) return;
-  input.value = displayKana(ch);
+  input.value = ch;
   activeMoveKey = null;
   activeSlotTap = { key: null, time: 0 };
   validateCell(input);
@@ -1480,7 +1565,7 @@ function hideFinalChallenge() {
   finalSlotTap = { index: null, time: 0 };
   finalSolvedAnnounced = false;
   completionModal.classList.add("hidden");
-  finalSolvedModal.classList.add("hidden");
+  closeFinalSolvedModal();
   finalChallenge.classList.add("hidden");
   finalAnswer.replaceChildren();
   finalBank.replaceChildren();
@@ -1498,7 +1583,7 @@ function returnToBoard() {
   finalMoveIndex = null;
   finalSlotTap = { index: null, time: 0 };
   completionModal.classList.add("hidden");
-  finalSolvedModal.classList.add("hidden");
+  closeFinalSolvedModal();
   finalChallenge.classList.add("hidden");
   hintPanel.classList.remove("has-final-gradient");
   hintPanel.style.removeProperty("--final-gradient");
@@ -1509,6 +1594,34 @@ function returnToBoard() {
     hintBody.textContent = "マスを選ぶと、ここにカギが表示されます。";
     renderKeyboard();
   }
+}
+
+function stopConfetti() {
+  confettiLayer.replaceChildren();
+}
+
+function startConfetti() {
+  const colors = ["#e60012", "#f7931e", "#ffe600", "#8dc61d", "#00a86b", "#07a7e0", "#326db2", "#8c7bbd"];
+  stopConfetti();
+  for (let i = 0; i < 42; i += 1) {
+    const piece = document.createElement("span");
+    const drift = -62 + (i * 29) % 125;
+    piece.className = "confetti-piece";
+    piece.style.setProperty("--confetti-x", `${(i * 37 + 11) % 101}%`);
+    piece.style.setProperty("--confetti-w", `${7 + (i % 5)}px`);
+    piece.style.setProperty("--confetti-h", `${11 + (i % 4) * 3}px`);
+    piece.style.setProperty("--confetti-color", colors[i % colors.length]);
+    piece.style.setProperty("--confetti-duration", `${2.8 + (i % 7) * .22}s`);
+    piece.style.setProperty("--confetti-delay", `${-(i % 11) * .28}s`);
+    piece.style.setProperty("--confetti-drift", `${drift}px`);
+    piece.style.setProperty("--confetti-drift-end", `${Math.round(drift * -.55)}px`);
+    confettiLayer.appendChild(piece);
+  }
+}
+
+function closeFinalSolvedModal() {
+  finalSolvedModal.classList.add("hidden");
+  stopConfetti();
 }
 
 function renderFinalChallenge() {
@@ -1523,7 +1636,7 @@ function renderFinalChallenge() {
     const button = document.createElement("button");
     button.type = "button";
     button.className = "final-slot";
-    button.textContent = item ? displayKana(item.ch) : "□";
+    button.textContent = item ? item.ch : "□";
     button.classList.toggle("is-empty", !item);
     button.classList.toggle("is-held", item && index === finalMoveIndex);
     button.disabled = !item;
@@ -1564,6 +1677,7 @@ function renderFinalChallenge() {
     finalResult.textContent = "";
     if (!finalSolvedAnnounced) {
       finalSolvedAnnounced = true;
+      startConfetti();
       finalSolvedModal.classList.remove("hidden");
     }
   } else if (finalSelection.length === FINAL_ANSWER.length) {
@@ -1580,7 +1694,7 @@ function finalChip(item, inAnswer) {
   button.type = "button";
   button.className = "final-chip";
   button.style.setProperty("--key-color", item.color || "#222");
-  button.textContent = displayKana(item.ch);
+  button.textContent = item.ch;
   button.addEventListener("click", () => {
     if (inAnswer) {
       finalSelection = finalSelection.filter(selected => selected.id !== item.id);
@@ -1615,7 +1729,10 @@ function updateHint(ids) {
   }
   const main = words.find(w => w.id === activeWordId) || items[0];
   hintTitle.textContent = `${dirLabel(main.d)}${main.n} のカギ`;
-  hintBody.innerHTML = `${clueFor(main)}${items.length > 1 ? "<small>同じマスをもう一度タップすると、交差するカギに切り替わります。</small>" : ""}`;
+  const switchGuide = clueReadingMode
+    ? "おなじマスをもういちどタップすると、こうさするカギにきりかわります。"
+    : "同じマスをもう一度タップすると、交差するカギに切り替わります。";
+  hintBody.innerHTML = `${clueFor(main)}${items.length > 1 ? `<small>${switchGuide}</small>` : ""}`;
   goToMapBtn.classList.toggle("hidden", !mapPoints[main.id]);
 }
 
@@ -1698,7 +1815,7 @@ function load() {
       if (el) {
         const answer = el.closest(".cell")?.dataset.answer || "";
         if (!isAnswerCharacter(answer)) return;
-        el.value = displayKana(v);
+        el.value = canonicalKana(v);
         validateCell(el);
       }
     });
@@ -2119,20 +2236,13 @@ function showTutorialOnce() {
 }
 
 function toggleKanaDisplay() {
-  kanaDisplay = kanaDisplay === "katakana" ? "hiragana" : "katakana";
-  document.querySelectorAll(".cell input").forEach(input => {
-    const answer = input.closest(".cell")?.dataset.answer || "";
-    if (!isAnswerCharacter(answer) || !input.value) return;
-    input.value = displayKana(input.value);
-  });
-  kanaToggleBtn.textContent = kanaDisplay === "katakana" ? "ひらがな" : "カタカナ";
-  kanaToggleBtn.setAttribute("aria-pressed", String(kanaDisplay === "hiragana"));
-  if (finalChallengeOpen) {
-    renderFinalChallenge();
-  } else if (selectedKey) {
+  clueReadingMode = !clueReadingMode;
+  kanaToggleBtn.textContent = clueReadingMode ? "漢字" : "ひらがな";
+  kanaToggleBtn.setAttribute("aria-pressed", String(clueReadingMode));
+  kanaToggleBtn.setAttribute("aria-label", clueReadingMode ? "問題文を元の表記に戻す" : "問題文をひらがなにする");
+  if (selectedKey && !finalChallengeOpen) {
     refreshCurrentHint();
   }
-  renderKeyboard();
 }
 
 function setMode(mode) {
@@ -2180,11 +2290,11 @@ finalClearBtn.addEventListener("click", () => {
   finalMoveIndex = null;
   finalSlotTap = { index: null, time: 0 };
   finalSolvedAnnounced = false;
-  finalSolvedModal.classList.add("hidden");
+  closeFinalSolvedModal();
   renderFinalChallenge();
 });
 completionCloseBtn.addEventListener("click", () => completionModal.classList.add("hidden"));
-finalSolvedCloseBtn.addEventListener("click", () => finalSolvedModal.classList.add("hidden"));
+finalSolvedCloseBtn.addEventListener("click", closeFinalSolvedModal);
 window.addEventListener("resize", () => {
   centerBoard();
   if (currentMode === "map") centerMap();
