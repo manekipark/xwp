@@ -13,6 +13,10 @@
     --hint: #d9f6fb;
     --ink: #211815;
     --muted: #6e625e;
+    --blue: #2b98c4;
+    --blue-dark: #176586;
+    --blue-soft: #e4f6fd;
+    --blue-border: #2c6f8e;
     --cell: 34px;
   }
 
@@ -50,14 +54,14 @@
   .terms-card p { line-height: 1.75; font-size: 15px; margin: 0 0 14px; }
   .primary-btn {
     border: 2px solid #222;
-    background: var(--green);
+    background: var(--blue);
     color: #fff;
     border-radius: 999px;
     padding: 15px 26px;
     font-weight: 800;
-    box-shadow: 0 5px 0 var(--green-dark);
+    box-shadow: 0 5px 0 var(--blue-dark);
   }
-  .primary-btn:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--green-dark); }
+  .primary-btn:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--blue-dark); }
 
   .home-screen {
     flex-direction: column;
@@ -168,12 +172,21 @@
   .main-area {
     position: fixed;
     inset: 0;
-    background: #fff url("assets/background.jpg?v=20260811-bg1") center center / cover no-repeat;
+    background: #fff;
     margin: 0;
     overflow: hidden;
     touch-action: none;
   }
-  .viewport { position: absolute; inset: 0; overflow: hidden; touch-action: none; }
+  .main-area::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background: url("assets/background.jpg?v=20260811-bg1") center center / cover no-repeat;
+    opacity: .5;
+    pointer-events: none;
+  }
+  .viewport { position: absolute; inset: 0; z-index: 1; overflow: hidden; touch-action: none; }
   .stage { position: absolute; left: 50%; top: 50%; transform-origin: 0 0; will-change: transform; }
   .board {
     position: relative;
@@ -232,8 +245,12 @@
     outline-offset: -4px;
     z-index: 6;
   }
-  .cell.keypoint input { color: #111; }
-  .cell.correct input { color: #126c3d; }
+  .cell.keypoint input,
+  .cell.keypoint.correct input {
+    color: #fff !important;
+    text-shadow: 0 1px 2px #000, 0 0 2px #000;
+  }
+  .cell.correct input { color: #176fb3; }
   .cell.wrong input { color: #b01414; }
   .num {
     position: absolute;
@@ -249,6 +266,7 @@
     display: none;
     position: absolute;
     inset: 0;
+    z-index: 2;
     overflow: hidden;
     background: #f7fff7;
     touch-action: none;
@@ -260,18 +278,18 @@
     left: max(14px, env(safe-area-inset-left));
     z-index: 8;
     min-height: 46px;
-    border: 2px solid #222;
+    border: 2px solid var(--blue-border);
     border-radius: 8px;
-    background: #fffdf8;
-    color: var(--ink);
+    background: var(--blue-soft);
+    color: #174e68;
     padding: 8px 16px;
     font-size: 16px;
     font-weight: 900;
-    box-shadow: 0 4px 0 rgba(33, 24, 21, .24);
+    box-shadow: 0 4px 0 #b5dce9;
   }
   .map-back-btn:active {
     transform: translateY(3px);
-    box-shadow: 0 1px 0 rgba(33, 24, 21, .24);
+    box-shadow: 0 1px 0 #b5dce9;
   }
   .map-stage {
     position: absolute;
@@ -439,32 +457,33 @@
   .kana-toggle-btn {
     min-width: 88px;
     height: 42px;
-    border: 2px solid #222;
+    border: 2px solid var(--blue-border);
     border-radius: 8px;
-    background: var(--map);
+    background: var(--blue-soft);
+    color: #174e68;
     font-size: 16px;
     font-weight: 900;
-    box-shadow: 0 3px 0 #c7dccd;
+    box-shadow: 0 3px 0 #b5dce9;
   }
   .kana-toggle-btn:active {
     transform: translateY(2px);
-    box-shadow: 0 1px 0 #c7dccd;
+    box-shadow: 0 1px 0 #b5dce9;
   }
   .clue-map-btn {
     display: block;
     margin: 12px 0 2px;
     min-height: 44px;
-    border: 2px solid #222;
+    border: 2px solid var(--blue-border);
     border-radius: 8px;
-    background: #e8faef;
-    color: var(--ink);
+    background: var(--blue-soft);
+    color: #174e68;
     padding: 8px 16px;
     font-weight: 900;
-    box-shadow: 0 3px 0 #c7dccd;
+    box-shadow: 0 3px 0 #b5dce9;
   }
   .clue-map-btn:active {
     transform: translateY(2px);
-    box-shadow: 0 1px 0 #c7dccd;
+    box-shadow: 0 1px 0 #b5dce9;
   }
   .kana-keyboard {
     display: grid;
@@ -548,6 +567,13 @@
   }
   .keyboard-actions { display: flex; gap: 8px; }
   .keyboard-action { min-width: 54px; font-size: 16px; }
+  .keyboard-action,
+  .final-action {
+    border-color: var(--blue-border);
+    background: var(--blue-soft);
+    color: #174e68;
+    box-shadow: 0 3px 0 #b5dce9;
+  }
   .final-challenge {
     display: grid;
     gap: 10px;
@@ -601,8 +627,8 @@
     font-weight: 700;
   }
   .final-answer.is-solved {
-    background: #e8faef;
-    border-color: #126c3d;
+    background: #e3f5fc;
+    border-color: #176fb3;
   }
   .final-bank {
     display: flex;
@@ -633,10 +659,16 @@
   .final-action {
     min-width: 74px;
     height: 38px;
-    border: 2px solid #222;
+    border: 2px solid var(--blue-border);
     border-radius: 8px;
-    background: #fffdf8;
+    background: var(--blue-soft);
+    color: #174e68;
     font-weight: 900;
+    box-shadow: 0 3px 0 #b5dce9;
+  }
+  .final-action:active {
+    transform: translateY(2px);
+    box-shadow: 0 1px 0 #b5dce9;
   }
   .final-result {
     min-height: 22px;
@@ -700,11 +732,16 @@
   .completion-card button {
     width: 100%;
     min-height: 44px;
-    border: 2px solid #222;
+    border: 2px solid var(--blue-border);
     border-radius: 8px;
-    background: var(--green);
+    background: var(--blue);
     color: #fff;
     font-weight: 900;
+    box-shadow: 0 4px 0 var(--blue-dark);
+  }
+  .completion-card button:active {
+    transform: translateY(3px);
+    box-shadow: 0 1px 0 var(--blue-dark);
   }
   .tutorial-overlay {
     position: fixed;
@@ -887,6 +924,7 @@
         </div>
         <p id="hintBody" class="hint-body">マスを選ぶと、ここにカギが表示されます。</p>
         <button id="goToMapBtn" class="clue-map-btn hidden" type="button">この場所へ行く</button>
+        <button id="resumeFinalBtn" class="clue-map-btn hidden" type="button">最終問題へ戻る</button>
         <section id="kanaKeyboard" class="kana-keyboard is-empty" aria-label="文字入力">
           <div id="activeAnswer" class="active-answer is-empty"></div>
           <div id="kanaKeys" class="kana-keys"></div>
@@ -918,7 +956,7 @@
       <section id="finalSolvedModal" class="completion-modal hidden" role="dialog" aria-modal="true" aria-labelledby="finalSolvedTitle">
         <div id="confettiLayer" class="confetti-layer" aria-hidden="true"></div>
         <div class="completion-card">
-          <h2 id="finalSolvedTitle">正解！</h2>
+          <h2 id="finalSolvedTitle">congratulation！</h2>
           <p>宝（たから）ものは、あなたの持っている大切な命（タイセツナイノチ）です。どうか、いつまでも大切にしてください。</p>
           <button id="finalSolvedCloseBtn" type="button">閉じる</button>
         </div>
@@ -1089,6 +1127,7 @@ const hintBody = document.getElementById("hintBody");
 const answerTab = document.getElementById("answerTab");
 const kanaToggleBtn = document.getElementById("kanaToggleBtn");
 const goToMapBtn = document.getElementById("goToMapBtn");
+const resumeFinalBtn = document.getElementById("resumeFinalBtn");
 const mapBackBtn = document.getElementById("mapBackBtn");
 const mapDestinationPin = document.getElementById("mapDestinationPin");
 const hintPanel = document.querySelector(".hint-panel");
@@ -1526,6 +1565,11 @@ function setFinalHintText() {
   hintTitle.textContent = "最終問題";
   hintBody.textContent = "色つきのキーポイントマスの文字をならべかえて、たからものを見つけよう。";
   goToMapBtn.classList.add("hidden");
+  resumeFinalBtn.classList.add("hidden");
+}
+
+function updateResumeFinalButton() {
+  resumeFinalBtn.classList.toggle("hidden", !puzzleCompleted || finalChallengeOpen);
 }
 
 function showFinalChallenge(resetSelection = true, announce = false) {
@@ -1554,6 +1598,7 @@ function showFinalChallenge(resetSelection = true, announce = false) {
     finalSlotTap = { index: null, time: 0 };
   }
   renderFinalChallenge();
+  updateResumeFinalButton();
   if (announce && !wasCompleted) completionModal.classList.remove("hidden");
 }
 
@@ -1576,6 +1621,7 @@ function hideFinalChallenge() {
   });
   hintPanel.classList.remove("has-final-gradient");
   hintPanel.style.removeProperty("--final-gradient");
+  updateResumeFinalButton();
 }
 
 function returnToBoard() {
@@ -1594,6 +1640,7 @@ function returnToBoard() {
     hintBody.textContent = "マスを選ぶと、ここにカギが表示されます。";
     renderKeyboard();
   }
+  updateResumeFinalButton();
 }
 
 function stopConfetti() {
@@ -1725,6 +1772,7 @@ function updateHint(ids) {
     hintTitle.textContent = "カギ";
     hintBody.textContent = "マスを選ぶと、ここにカギが表示されます。";
     goToMapBtn.classList.add("hidden");
+    updateResumeFinalButton();
     return;
   }
   const main = words.find(w => w.id === activeWordId) || items[0];
@@ -1733,7 +1781,8 @@ function updateHint(ids) {
     ? "おなじマスをもういちどタップすると、こうさするカギにきりかわります。"
     : "同じマスをもう一度タップすると、交差するカギに切り替わります。";
   hintBody.innerHTML = `${clueFor(main)}${items.length > 1 ? `<small>${switchGuide}</small>` : ""}`;
-  goToMapBtn.classList.toggle("hidden", !mapPoints[main.id]);
+  goToMapBtn.classList.toggle("hidden", !mapPoints[main.id] || (puzzleCompleted && !finalChallengeOpen));
+  updateResumeFinalButton();
 }
 
 function refreshCurrentHint() {
@@ -2266,6 +2315,7 @@ function setMode(mode) {
     hintTitle.textContent = "カギ";
     hintBody.textContent = "マスを選ぶと、ここにカギが表示されます。";
     goToMapBtn.classList.add("hidden");
+    updateResumeFinalButton();
     renderKeyboard();
   }
 }
@@ -2281,6 +2331,7 @@ document.getElementById("startBtn").addEventListener("click", () => {
 answerTab.addEventListener("click", () => setMode("answer"));
 kanaToggleBtn.addEventListener("click", toggleKanaDisplay);
 goToMapBtn.addEventListener("click", () => setMode("map"));
+resumeFinalBtn.addEventListener("click", () => showFinalChallenge(false));
 mapBackBtn.addEventListener("click", () => setMode("answer"));
 clearCellBtn.addEventListener("click", clearSelectedCell);
 backCellBtn.addEventListener("click", movePrevious);
