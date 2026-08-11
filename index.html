@@ -65,7 +65,7 @@
     justify-content: end;
     background:
       linear-gradient(180deg, rgba(10, 54, 37, .02) 0%, rgba(10, 54, 37, .08) 56%, rgba(10, 54, 37, .56) 100%),
-      url("assets/title.png?v=20260811-title2") center top / min(100vw, 2048px) auto no-repeat,
+      url("assets/title.png?v=20260811-title4") center top / min(100vw, 2048px) auto no-repeat,
       #15583e;
     padding: clamp(16px, 3.2vw, 42px);
     overflow: auto;
@@ -237,6 +237,25 @@
     touch-action: none;
     user-select: none;
   }
+  .map-back-btn {
+    position: absolute;
+    top: max(14px, env(safe-area-inset-top));
+    left: max(14px, env(safe-area-inset-left));
+    z-index: 8;
+    min-height: 46px;
+    border: 2px solid #222;
+    border-radius: 8px;
+    background: #fffdf8;
+    color: var(--ink);
+    padding: 8px 16px;
+    font-size: 16px;
+    font-weight: 900;
+    box-shadow: 0 4px 0 rgba(33, 24, 21, .24);
+  }
+  .map-back-btn:active {
+    transform: translateY(3px);
+    box-shadow: 0 1px 0 rgba(33, 24, 21, .24);
+  }
   .map-stage {
     position: absolute;
     left: 50%;
@@ -265,6 +284,28 @@
     inset: 0;
     z-index: 3;
     pointer-events: none;
+  }
+  .map-destination-pin {
+    position: absolute;
+    left: calc(var(--map-x, 50) * 1%);
+    top: calc(var(--map-y, 50) * 1%);
+    width: 38px;
+    height: 38px;
+    transform: translate(-50%, calc(-100% - 13px)) scale(var(--pin-scale, 1));
+    transform-origin: 50% 100%;
+    border: 4px solid #fff;
+    border-radius: 50% 50% 50% 0;
+    background: #e43628;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, .32);
+    rotate: -45deg;
+    pointer-events: none;
+  }
+  .map-destination-pin::after {
+    content: "";
+    position: absolute;
+    inset: 9px;
+    border-radius: 50%;
+    background: #fff;
   }
   .map-pin {
     position: absolute;
@@ -378,7 +419,7 @@
   .hint-title { font-size: 28px; margin: 0 0 6px; font-weight: 800; }
   .hint-body { font-size: 18px; line-height: 1.55; margin: 0; color: var(--ink); }
   .hint-body small { display: block; margin-top: 6px; font-size: 13px; opacity: .8; }
-  .map-toggle-btn {
+  .kana-toggle-btn {
     min-width: 88px;
     height: 42px;
     border: 2px solid #222;
@@ -388,7 +429,23 @@
     font-weight: 900;
     box-shadow: 0 3px 0 #c7dccd;
   }
-  .map-toggle-btn:active {
+  .kana-toggle-btn:active {
+    transform: translateY(2px);
+    box-shadow: 0 1px 0 #c7dccd;
+  }
+  .clue-map-btn {
+    display: block;
+    margin: 12px 0 2px;
+    min-height: 44px;
+    border: 2px solid #222;
+    border-radius: 8px;
+    background: #e8faef;
+    color: var(--ink);
+    padding: 8px 16px;
+    font-weight: 900;
+    box-shadow: 0 3px 0 #c7dccd;
+  }
+  .clue-map-btn:active {
     transform: translateY(2px);
     box-shadow: 0 1px 0 #c7dccd;
   }
@@ -687,7 +744,7 @@
       width: 100%;
       aspect-ratio: 3 / 1;
       align-self: start;
-      background: url("assets/title.png?v=20260811-title2") center center / contain no-repeat;
+      background: url("assets/title.png?v=20260811-title4") center center / contain no-repeat;
       filter: drop-shadow(0 10px 18px rgba(0, 0, 0, .18));
     }
     .home-copy {
@@ -716,7 +773,7 @@
     .hint-head { align-items: center; }
     .hint-title { font-size: 23px; }
     .hint-body { font-size: 15px; }
-    .map-toggle-btn { min-width: 74px; height: 38px; font-size: 14px; }
+    .kana-toggle-btn { min-width: 74px; height: 38px; font-size: 14px; }
     .kana-keyboard { grid-template-columns: 1fr; padding: 10px 0 0; gap: 8px; }
     .kana-keys { gap: 6px; min-height: 44px; }
     .kana-key,
@@ -768,11 +825,11 @@
           </div>
         </div>
         <div id="mapView" class="map-view">
+          <button id="mapBackBtn" class="map-back-btn" type="button">問題に戻る</button>
           <div id="mapStage" class="map-stage">
             <div class="map-canvas">
               <img src="assets/map.jpg" alt="南浜・門脇・雲雀野地域の地図">
-              <div id="mapPins" class="map-pins"></div>
-              <div id="mapHighlight" class="map-highlight hidden" data-label="カギ"></div>
+              <div id="mapDestinationPin" class="map-destination-pin hidden" aria-hidden="true"></div>
             </div>
           </div>
         </div>
@@ -780,9 +837,10 @@
       <aside class="hint-panel">
         <div class="hint-head">
           <h2 id="hintTitle" class="hint-title">カギ</h2>
-          <button id="mapTab" class="map-toggle-btn" type="button" aria-pressed="false">地図</button>
+          <button id="kanaToggleBtn" class="kana-toggle-btn" type="button" aria-pressed="false">ひらがな</button>
         </div>
         <p id="hintBody" class="hint-body">マスを選ぶと、ここにカギが表示されます。</p>
+        <button id="goToMapBtn" class="clue-map-btn hidden" type="button">この場所へ行く</button>
         <section id="kanaKeyboard" class="kana-keyboard is-empty" aria-label="文字入力">
           <div id="activeAnswer" class="active-answer is-empty"></div>
           <div id="kanaKeys" class="kana-keys"></div>
@@ -944,9 +1002,10 @@ const mapStage = document.getElementById("mapStage");
 const hintTitle = document.getElementById("hintTitle");
 const hintBody = document.getElementById("hintBody");
 const answerTab = document.getElementById("answerTab");
-const mapTab = document.getElementById("mapTab");
-const mapPins = document.getElementById("mapPins");
-const mapHighlight = document.getElementById("mapHighlight");
+const kanaToggleBtn = document.getElementById("kanaToggleBtn");
+const goToMapBtn = document.getElementById("goToMapBtn");
+const mapBackBtn = document.getElementById("mapBackBtn");
+const mapDestinationPin = document.getElementById("mapDestinationPin");
 const hintPanel = document.querySelector(".hint-panel");
 const kanaKeyboard = document.getElementById("kanaKeyboard");
 const activeAnswer = document.getElementById("activeAnswer");
@@ -991,6 +1050,7 @@ let finalSelection = [];
 let finalMoveIndex = null;
 let finalSlotTap = { index: null, time: 0 };
 let finalSolvedAnnounced = false;
+let kanaDisplay = "katakana";
 
 function key(r, c) { return `${r},${c}`; }
 function wordCells(w) {
@@ -1014,7 +1074,7 @@ function isWordSolved(w) {
   return wordCells(w).every(pos => {
     if (!isAnswerCharacter(pos.ch)) return true;
     const input = document.querySelector(`[data-key="${key(pos.r, pos.c)}"] input`);
-    return input?.value === pos.ch;
+    return canonicalKana(input?.value || "") === pos.ch;
   });
 }
 
@@ -1022,16 +1082,26 @@ function clueFor(w) {
   const clue = clues[w.id] || clues[w.alias] || "このカギは確認中です。";
   return clue.replace(/＜(ヨコ|タテ)(\d+)＞/g, (match, dir, number) => {
     const referenced = wordByReference(dir, number);
-    return isWordSolved(referenced) ? referenced.answer : match;
+    return isWordSolved(referenced) ? displayKana(referenced.answer) : match;
   });
+}
+
+function canonicalKana(value) {
+  return String(value || "")
+    .replace(/[ぁ-ゖ]/g, ch => String.fromCharCode(ch.charCodeAt(0) + 0x60))
+    .replace(/[！]/g, "!")
+    .replace(/[a-z]/g, ch => ch.toUpperCase());
+}
+
+function displayKana(value) {
+  const canonical = canonicalKana(value);
+  if (kanaDisplay !== "hiragana") return canonical;
+  return canonical.replace(/[ァ-ヶ]/g, ch => String.fromCharCode(ch.charCodeAt(0) - 0x60));
 }
 
 function normalizeKana(value) {
   const last = [...value].pop() || "";
-  return last
-    .replace(/[ぁ-ん]/g, ch => String.fromCharCode(ch.charCodeAt(0) + 0x60))
-    .replace(/[！]/g, "!")
-    .replace(/[a-z]/g, ch => ch.toUpperCase());
+  return canonicalKana(last);
 }
 
 function isAnswerCharacter(ch) {
@@ -1054,7 +1124,7 @@ function activeChoices() {
   const remaining = cells.map(pos => pos.ch);
   cells.forEach(pos => {
     const input = document.querySelector(`[data-key="${key(pos.r, pos.c)}"] input`);
-    const usedIndex = remaining.indexOf(input?.value || "");
+    const usedIndex = remaining.indexOf(canonicalKana(input?.value || ""));
     if (usedIndex >= 0) remaining.splice(usedIndex, 1);
   });
   return remaining.sort(sortKanaChoice);
@@ -1113,7 +1183,7 @@ function createCells() {
     });
     input.addEventListener("focus", () => selectCell(input.dataset.key, false));
     input.addEventListener("input", () => {
-      input.value = normalizeKana(input.value);
+      input.value = displayKana(normalizeKana(input.value));
       validateCell(input);
       save();
       refreshCurrentHint();
@@ -1125,48 +1195,9 @@ function createCells() {
   });
 
   createGridLines();
-  renderMapPins();
 
   load();
   centerBoard();
-}
-
-function renderMapPins() {
-  mapPins.replaceChildren();
-  words.forEach(w => {
-    const point = mapPoints[w.id];
-    if (!point) return;
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = `map-pin ${w.d === "across" ? "is-across" : "is-down"}`;
-    button.dataset.wordId = w.id;
-    button.style.setProperty("--map-x", point.x);
-    button.style.setProperty("--map-y", point.y);
-    button.textContent = w.n;
-    button.setAttribute("aria-label", `${mapLabel(w)} のカギへ`);
-    button.addEventListener("pointerdown", e => {
-      e.stopPropagation();
-    });
-    button.addEventListener("click", e => {
-      e.stopPropagation();
-      openWordFromMap(w.id);
-    });
-    mapPins.appendChild(button);
-  });
-}
-
-function openWordFromMap(wordId) {
-  const w = words.find(word => word.id === wordId);
-  if (!w) return;
-  const first = wordCells(w).find(pos => isAnswerCharacter(pos.ch));
-  if (!first) return;
-  finalChallengeOpen = false;
-  finalChallenge.classList.add("hidden");
-  activeWordId = w.id;
-  selectedKey = key(first.r, first.c);
-  setMode("answer");
-  selectCell(selectedKey);
-  document.querySelector(`[data-key="${selectedKey}"] input`)?.focus();
 }
 
 function createGridLines() {
@@ -1222,12 +1253,12 @@ function selectCell(k, fromTap = false) {
     setFinalHintText();
     kanaKeyboard.classList.add("hidden");
     finalChallenge.classList.remove("hidden");
-    updateMapHighlight();
+    updateMapDestination();
     renderFinalChallenge();
     return;
   }
   updateHint(ids);
-  updateMapHighlight();
+  updateMapDestination();
   renderKeyboard();
 }
 
@@ -1247,8 +1278,8 @@ function renderKeyboard() {
     const button = document.createElement("button");
     button.type = "button";
     button.className = "kana-key";
-    button.textContent = ch;
-    button.setAttribute("aria-label", `${ch}を入力`);
+    button.textContent = displayKana(ch);
+    button.setAttribute("aria-label", `${displayKana(ch)}を入力`);
     button.addEventListener("click", () => inputChoice(ch));
     kanaKeys.appendChild(button);
   });
@@ -1343,7 +1374,7 @@ function inputChoice(ch) {
   const input = currentInput();
   if (!input || !activeChoices().includes(ch)) return;
   if (!isAnswerCharacter(input.closest(".cell")?.dataset.answer || "")) return;
-  input.value = ch;
+  input.value = displayKana(ch);
   activeMoveKey = null;
   activeSlotTap = { key: null, time: 0 };
   validateCell(input);
@@ -1372,14 +1403,14 @@ function validateCell(input) {
   cell.classList.remove("correct", "wrong");
   if (!isAnswerCharacter(cell.dataset.answer)) return;
   if (!input.value) return;
-  cell.classList.add(input.value === cell.dataset.answer ? "correct" : "wrong");
+  cell.classList.add(canonicalKana(input.value) === cell.dataset.answer ? "correct" : "wrong");
 }
 
 function isPuzzleComplete() {
   return [...document.querySelectorAll(".cell")].every(cell => {
     if (!isAnswerCharacter(cell.dataset.answer)) return true;
     const input = cell.querySelector("input");
-    return input.value && input.value === cell.dataset.answer;
+    return input.value && canonicalKana(input.value) === cell.dataset.answer;
   });
 }
 
@@ -1409,6 +1440,7 @@ function keypointLetters() {
 function setFinalHintText() {
   hintTitle.textContent = "最終問題";
   hintBody.textContent = "色つきのキーポイントマスの文字をならべかえて、たからものを見つけよう。";
+  goToMapBtn.classList.add("hidden");
 }
 
 function showFinalChallenge(resetSelection = true, announce = false) {
@@ -1491,7 +1523,7 @@ function renderFinalChallenge() {
     const button = document.createElement("button");
     button.type = "button";
     button.className = "final-slot";
-    button.textContent = item?.ch || "□";
+    button.textContent = item ? displayKana(item.ch) : "□";
     button.classList.toggle("is-empty", !item);
     button.classList.toggle("is-held", item && index === finalMoveIndex);
     button.disabled = !item;
@@ -1548,7 +1580,7 @@ function finalChip(item, inAnswer) {
   button.type = "button";
   button.className = "final-chip";
   button.style.setProperty("--key-color", item.color || "#222");
-  button.textContent = item.ch;
+  button.textContent = displayKana(item.ch);
   button.addEventListener("click", () => {
     if (inAnswer) {
       finalSelection = finalSelection.filter(selected => selected.id !== item.id);
@@ -1578,11 +1610,13 @@ function updateHint(ids) {
   if (!items.length) {
     hintTitle.textContent = "カギ";
     hintBody.textContent = "マスを選ぶと、ここにカギが表示されます。";
+    goToMapBtn.classList.add("hidden");
     return;
   }
   const main = words.find(w => w.id === activeWordId) || items[0];
   hintTitle.textContent = `${dirLabel(main.d)}${main.n} のカギ`;
   hintBody.innerHTML = `${clueFor(main)}${items.length > 1 ? "<small>同じマスをもう一度タップすると、交差するカギに切り替わります。</small>" : ""}`;
+  goToMapBtn.classList.toggle("hidden", !mapPoints[main.id]);
 }
 
 function refreshCurrentHint() {
@@ -1591,20 +1625,16 @@ function refreshCurrentHint() {
   if (data) updateHint(data.words);
 }
 
-function updateMapHighlight() {
+function updateMapDestination() {
   const w = activeWord();
-  const point = w ? (mapPoints[w.id] || mapPoints[w.alias]) : null;
-  document.querySelectorAll(".map-pin").forEach(pin => {
-    pin.classList.toggle("is-active", !!w && pin.dataset.wordId === w.id);
-  });
+  const point = w ? mapPoints[w.id] : null;
   if (!point) {
-    mapHighlight.classList.add("hidden");
+    mapDestinationPin.classList.add("hidden");
     return;
   }
-  mapHighlight.style.setProperty("--map-x", point.x);
-  mapHighlight.style.setProperty("--map-y", point.y);
-  mapHighlight.dataset.label = mapLabel(w);
-  mapHighlight.classList.remove("hidden");
+  mapDestinationPin.style.setProperty("--map-x", point.x);
+  mapDestinationPin.style.setProperty("--map-y", point.y);
+  mapDestinationPin.classList.remove("hidden");
 }
 
 function moveNext() {
@@ -1655,7 +1685,7 @@ function save() {
   const data = {};
   document.querySelectorAll(".cell input").forEach(el => {
     const answer = el.closest(".cell")?.dataset.answer || "";
-    if (isAnswerCharacter(answer)) data[el.dataset.key] = el.value || "";
+    if (isAnswerCharacter(answer)) data[el.dataset.key] = canonicalKana(el.value || "");
   });
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 }
@@ -1668,7 +1698,7 @@ function load() {
       if (el) {
         const answer = el.closest(".cell")?.dataset.answer || "";
         if (!isAnswerCharacter(answer)) return;
-        el.value = v;
+        el.value = displayKana(v);
         validateCell(el);
       }
     });
@@ -1837,7 +1867,7 @@ function focusMap(point = null) {
 
 function focusMapOnActive() {
   const w = activeWord();
-  const point = w ? (mapPoints[w.id] || mapPoints[w.alias]) : null;
+  const point = w ? mapPoints[w.id] : null;
   focusMap(point || null);
 }
 
@@ -2088,20 +2118,34 @@ function showTutorialOnce() {
   });
 }
 
+function toggleKanaDisplay() {
+  kanaDisplay = kanaDisplay === "katakana" ? "hiragana" : "katakana";
+  document.querySelectorAll(".cell input").forEach(input => {
+    const answer = input.closest(".cell")?.dataset.answer || "";
+    if (!isAnswerCharacter(answer) || !input.value) return;
+    input.value = displayKana(input.value);
+  });
+  kanaToggleBtn.textContent = kanaDisplay === "katakana" ? "ひらがな" : "カタカナ";
+  kanaToggleBtn.setAttribute("aria-pressed", String(kanaDisplay === "hiragana"));
+  if (finalChallengeOpen) {
+    renderFinalChallenge();
+  } else if (selectedKey) {
+    refreshCurrentHint();
+  }
+  renderKeyboard();
+}
+
 function setMode(mode) {
+  if (mode === "map" && !mapPoints[activeWord()?.id]) return;
   currentMode = mode;
   answerTab.setAttribute("aria-selected", String(mode === "answer"));
-  mapTab.setAttribute("aria-pressed", String(mode === "map"));
-  mapTab.textContent = mode === "map" ? "回答へ" : "地図";
   viewport.style.display = mode === "answer" ? "block" : "none";
   mapView.style.display = mode === "map" ? "block" : "none";
-  updateMapHighlight();
+  hintPanel.classList.toggle("hidden", mode === "map");
+  updateMapDestination();
   if (mode === "map") {
+    hideTutorial();
     focusMapOnActive();
-    hintTitle.textContent = "地図";
-    const w = activeWord();
-    hintBody.textContent = w ? `${mapLabel(w)} の場所を地図上で強調表示しています。` : "地図を見ながら、現地のカギを探してください。";
-    renderKeyboard();
   } else if (selectedKey) {
     if (finalChallengeOpen) {
       showFinalChallenge(false);
@@ -2111,6 +2155,7 @@ function setMode(mode) {
   } else {
     hintTitle.textContent = "カギ";
     hintBody.textContent = "マスを選ぶと、ここにカギが表示されます。";
+    goToMapBtn.classList.add("hidden");
     renderKeyboard();
   }
 }
@@ -2124,7 +2169,9 @@ document.getElementById("startBtn").addEventListener("click", () => {
   }, 80);
 });
 answerTab.addEventListener("click", () => setMode("answer"));
-mapTab.addEventListener("click", () => setMode(currentMode === "map" ? "answer" : "map"));
+kanaToggleBtn.addEventListener("click", toggleKanaDisplay);
+goToMapBtn.addEventListener("click", () => setMode("map"));
+mapBackBtn.addEventListener("click", () => setMode("answer"));
 clearCellBtn.addEventListener("click", clearSelectedCell);
 backCellBtn.addEventListener("click", movePrevious);
 finalBackBtn.addEventListener("click", returnToBoard);
