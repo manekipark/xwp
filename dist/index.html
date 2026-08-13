@@ -1055,7 +1055,9 @@ const cluesHiragana = {
 
 const mapPoints = {
   a2: { lat: 38.418799292092736, lng: 141.30169937383354 },
+  a4: { destination: "みやぎ東日本大震災津波伝承館" },
   a5: { lat: 38.4204516155457, lng: 141.3045008676152 },
+  a8: { destination: "石巻市震災遺構 門脇小学校" },
   a9: { lat: 38.41880681336802, lng: 141.3019501235175 },
   a13: { lat: 38.419025624097515, lng: 141.3034126885408 },
   a15: { lat: 38.42120746941521, lng: 141.30474115502795 },
@@ -1063,8 +1065,11 @@ const mapPoints = {
   a19: { lat: 38.41450044958495, lng: 141.30138069376287 },
   d20: { lat: 38.42047076687734, lng: 141.30450762875427 },
   d21: { lat: 38.4180313128659, lng: 141.30089241238875 },
+  d19: { destination: "日和山公園 宮城県石巻市" },
   d24: { lat: 38.41883895055506, lng: 141.30670232251336 },
+  d24b: { destination: "宮城県石巻市南浜町一丁目7-20 石巻市立病院跡地" },
   d25: { lat: 38.419025624097515, lng: 141.3034126885408 },
+  d26b: { destination: "石巻市震災遺構 門脇小学校" },
   d28: { lat: 38.418813898091564, lng: 141.30251685172132 }
 };
 
@@ -1778,9 +1783,10 @@ function updateHint(ids) {
 function openGoogleMapsDestination() {
   const point = mapPoints[activeWord()?.id];
   if (!point) return;
+  const destination = point.destination || `${point.lat},${point.lng}`;
   const params = new URLSearchParams({
     api: "1",
-    destination: `${point.lat},${point.lng}`,
+    destination,
     travelmode: "walking"
   });
   window.open(`https://www.google.com/maps/dir/?${params}`, "_blank", "noopener,noreferrer");
