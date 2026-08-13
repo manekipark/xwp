@@ -567,6 +567,11 @@
   }
   .keyboard-actions { display: flex; gap: 8px; }
   .keyboard-action { min-width: 54px; font-size: 16px; }
+  .keyboard-actions .clue-map-btn {
+    margin: 0;
+    min-width: 132px;
+    height: 46px;
+  }
   .keyboard-action,
   .final-action {
     border-color: var(--blue-border);
@@ -611,7 +616,7 @@
     border: 3px solid #222;
     border-radius: 8px;
     background: #fffdf8;
-    color: var(--ink);
+    color: var(--key-color, var(--ink));
     font-size: clamp(16px, 5vw, 21px);
     font-weight: 900;
   }
@@ -923,14 +928,12 @@
           <button id="kanaToggleBtn" class="kana-toggle-btn" type="button" aria-pressed="false" aria-label="問題文をひらがなにする">ひらがな</button>
         </div>
         <p id="hintBody" class="hint-body">マスを選ぶと、ここにカギが表示されます。</p>
-        <button id="goToMapBtn" class="clue-map-btn hidden" type="button">この場所へ行く</button>
         <button id="resumeFinalBtn" class="clue-map-btn hidden" type="button">最終問題へ戻る</button>
         <section id="kanaKeyboard" class="kana-keyboard is-empty" aria-label="文字入力">
           <div id="activeAnswer" class="active-answer is-empty"></div>
           <div id="kanaKeys" class="kana-keys"></div>
           <div class="keyboard-actions">
-            <button id="clearCellBtn" class="keyboard-action" type="button">消す</button>
-            <button id="backCellBtn" class="keyboard-action" type="button">戻る</button>
+            <button id="goToMapBtn" class="keyboard-action clue-map-btn hidden" type="button" aria-label="Googleマップでこの場所への徒歩経路を開く">この場所へ行く</button>
           </div>
         </section>
         <section id="finalChallenge" class="final-challenge hidden" aria-label="最終問題">
@@ -1064,19 +1067,19 @@ const cluesHiragana = {
 };
 
 const mapPoints = {
-  a4: { x: 62.9, y: 43.5 },
-  a5: { x: 52.3, y: 36.3 },
-  a8: { x: 55.7, y: 31.1 },
-  a9: { x: 31.2, y: 41.8 },
-  a13: { x: 45.1, y: 40.5 },
-  a17: { x: 49.4, y: 30.0 },
-  d19: { x: 70.2, y: 24.3 },
-  d21: { x: 27.5, y: 49.7 },
-  d24: { x: 81.6, y: 39.9 },
-  d24b: { x: 80.6, y: 44.8 },
-  d25: { x: 40.4, y: 41.0 },
-  d26b: { x: 38.4, y: 24.9 },
-  d28: { x: 34.9, y: 39.4 }
+  a4: { x: 62.9, y: 43.5, destination: "みやぎ東日本大震災津波伝承館" },
+  a5: { x: 52.3, y: 36.3, destination: "震災伝承交流施設 MEET門脇" },
+  a8: { x: 55.7, y: 31.1, destination: "石巻市震災遺構 門脇小学校" },
+  a9: { x: 31.2, y: 41.8, destination: "石巻南浜津波復興祈念公園 市民活動拠点" },
+  a13: { x: 45.1, y: 40.5, destination: "石巻南浜津波復興祈念公園 聖人堀" },
+  a17: { x: 49.4, y: 30.0, destination: "石巻市震災遺構 門脇小学校" },
+  d19: { x: 70.2, y: 24.3, destination: "日和山公園 宮城県石巻市" },
+  d21: { x: 27.5, y: 49.7, destination: "石巻南浜津波復興祈念公園 洗掘湿地" },
+  d24: { x: 81.6, y: 39.9, destination: "石巻南浜津波復興祈念公園 門脇保育所跡" },
+  d24b: { x: 80.6, y: 44.8, destination: "宮城県石巻市南浜町一丁目7-20 石巻市立病院跡地" },
+  d25: { x: 40.4, y: 41.0, destination: "石巻南浜津波復興祈念公園 聖人堀" },
+  d26b: { x: 38.4, y: 24.9, destination: "石巻市震災遺構 門脇小学校" },
+  d28: { x: 34.9, y: 39.4, destination: "石巻南浜津波復興祈念公園 市民活動拠点" }
 };
 
 const words = [
@@ -1134,8 +1137,6 @@ const hintPanel = document.querySelector(".hint-panel");
 const kanaKeyboard = document.getElementById("kanaKeyboard");
 const activeAnswer = document.getElementById("activeAnswer");
 const kanaKeys = document.getElementById("kanaKeys");
-const clearCellBtn = document.getElementById("clearCellBtn");
-const backCellBtn = document.getElementById("backCellBtn");
 const finalChallenge = document.getElementById("finalChallenge");
 const finalAnswer = document.getElementById("finalAnswer");
 const finalBank = document.getElementById("finalBank");
@@ -1388,14 +1389,10 @@ function selectCell(k, fromTap = false) {
 
 function renderKeyboard() {
   const choices = activeChoices();
-  const input = currentInput();
-  const editable = !!input && isAnswerCharacter(input.closest(".cell")?.dataset.answer || "");
   renderActiveAnswer();
   kanaKeys.replaceChildren();
   kanaKeyboard.classList.toggle("hidden", currentMode !== "answer" || finalChallengeOpen);
   kanaKeyboard.classList.toggle("is-empty", choices.length === 0 || currentMode !== "answer");
-  clearCellBtn.disabled = currentMode !== "answer" || !editable;
-  backCellBtn.disabled = currentMode !== "answer" || !editable;
   if (currentMode !== "answer" || finalChallengeOpen) return;
 
   choices.forEach(ch => {
@@ -1688,6 +1685,7 @@ function renderFinalChallenge() {
     button.classList.toggle("is-held", item && index === finalMoveIndex);
     button.disabled = !item;
     if (item) {
+      button.style.setProperty("--key-color", item.color || "#222");
       button.addEventListener("click", e => {
         e.preventDefault();
         const now = Date.now();
@@ -1781,8 +1779,19 @@ function updateHint(ids) {
     ? "おなじマスをもういちどタップすると、こうさするカギにきりかわります。"
     : "同じマスをもう一度タップすると、交差するカギに切り替わります。";
   hintBody.innerHTML = `${clueFor(main)}${items.length > 1 ? `<small>${switchGuide}</small>` : ""}`;
-  goToMapBtn.classList.toggle("hidden", !mapPoints[main.id] || (puzzleCompleted && !finalChallengeOpen));
+  goToMapBtn.classList.toggle("hidden", !mapPoints[main.id]?.destination);
   updateResumeFinalButton();
+}
+
+function openGoogleMapsDestination() {
+  const point = mapPoints[activeWord()?.id];
+  if (!point?.destination) return;
+  const params = new URLSearchParams({
+    api: "1",
+    destination: point.destination,
+    travelmode: "walking"
+  });
+  window.open(`https://www.google.com/maps/dir/?${params}`, "_blank", "noopener,noreferrer");
 }
 
 function refreshCurrentHint() {
@@ -2330,11 +2339,9 @@ document.getElementById("startBtn").addEventListener("click", () => {
 });
 answerTab.addEventListener("click", () => setMode("answer"));
 kanaToggleBtn.addEventListener("click", toggleKanaDisplay);
-goToMapBtn.addEventListener("click", () => setMode("map"));
+goToMapBtn.addEventListener("click", openGoogleMapsDestination);
 resumeFinalBtn.addEventListener("click", () => showFinalChallenge(false));
 mapBackBtn.addEventListener("click", () => setMode("answer"));
-clearCellBtn.addEventListener("click", clearSelectedCell);
-backCellBtn.addEventListener("click", movePrevious);
 finalBackBtn.addEventListener("click", returnToBoard);
 finalClearBtn.addEventListener("click", () => {
   finalSelection = [];
