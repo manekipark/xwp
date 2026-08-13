@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>南浜・門脇・雲雀野伝承</title>
+<title>伝承クロスワード</title>
+<link rel="icon" href="assets/favicon.ico?v=20260813" sizes="any">
 <style>
   :root {
     --green: #2f5f4a;
@@ -577,8 +578,7 @@
     min-width: 132px;
     height: 46px;
   }
-  .keyboard-action,
-  .final-action {
+  .keyboard-action {
     border-color: var(--blue-border);
     background: var(--blue-soft);
     color: #174e68;
@@ -660,25 +660,6 @@
     opacity: .35;
     transform: translateY(2px);
     box-shadow: none;
-  }
-  .final-actions {
-    display: flex;
-    gap: 8px;
-    justify-content: flex-end;
-  }
-  .final-action {
-    min-width: 74px;
-    height: 38px;
-    border: 2px solid var(--blue-border);
-    border-radius: 8px;
-    background: var(--blue-soft);
-    color: #174e68;
-    font-weight: 900;
-    box-shadow: 0 3px 0 #b5dce9;
-  }
-  .final-action:active {
-    transform: translateY(2px);
-    box-shadow: 0 1px 0 #b5dce9;
   }
   .final-result {
     min-height: 22px;
@@ -933,7 +914,8 @@
         <div class="hint-head">
           <h2 id="hintTitle" class="hint-title">カギ</h2>
           <div class="hint-head-actions">
-            <button id="resumeFinalBtn" class="clue-map-btn hidden" type="button">最終問題へ戻る</button>
+            <button id="finalBackBtn" class="clue-map-btn hidden" type="button">もどる</button>
+            <button id="resumeFinalBtn" class="clue-map-btn hidden" type="button">もどる</button>
             <button id="kanaToggleBtn" class="kana-toggle-btn" type="button" aria-pressed="false" aria-label="問題文をひらがなにする">ひらがな</button>
           </div>
         </div>
@@ -951,10 +933,6 @@
             <div id="finalAnswer" class="final-answer is-empty"></div>
           </div>
           <div id="finalBank" class="final-bank"></div>
-          <div class="final-actions">
-            <button id="finalBackBtn" class="final-action" type="button">盤面へ</button>
-            <button id="finalClearBtn" class="final-action" type="button">やりなおす</button>
-          </div>
           <div id="finalResult" class="final-result"></div>
         </section>
       </aside>
@@ -1150,7 +1128,6 @@ const finalChallenge = document.getElementById("finalChallenge");
 const finalAnswer = document.getElementById("finalAnswer");
 const finalBank = document.getElementById("finalBank");
 const finalBackBtn = document.getElementById("finalBackBtn");
-const finalClearBtn = document.getElementById("finalClearBtn");
 const finalResult = document.getElementById("finalResult");
 const completionModal = document.getElementById("completionModal");
 const completionCloseBtn = document.getElementById("completionCloseBtn");
@@ -1575,6 +1552,7 @@ function setFinalHintText() {
 }
 
 function updateResumeFinalButton() {
+  finalBackBtn.classList.toggle("hidden", !puzzleCompleted || !finalChallengeOpen);
   resumeFinalBtn.classList.toggle("hidden", !puzzleCompleted || finalChallengeOpen);
 }
 
@@ -2358,14 +2336,6 @@ goToMapBtn.addEventListener("click", openGoogleMapsDestination);
 resumeFinalBtn.addEventListener("click", () => showFinalChallenge(false));
 mapBackBtn.addEventListener("click", () => setMode("answer"));
 finalBackBtn.addEventListener("click", returnToBoard);
-finalClearBtn.addEventListener("click", () => {
-  finalSelection = [];
-  finalMoveIndex = null;
-  finalSlotTap = { index: null, time: 0 };
-  finalSolvedAnnounced = false;
-  closeFinalSolvedModal();
-  renderFinalChallenge();
-});
 completionCloseBtn.addEventListener("click", () => completionModal.classList.add("hidden"));
 finalSolvedCloseBtn.addEventListener("click", closeFinalSolvedModal);
 window.addEventListener("resize", () => {
