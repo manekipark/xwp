@@ -1054,19 +1054,18 @@ const cluesHiragana = {
 };
 
 const mapPoints = {
-  a4: { x: 62.9, y: 43.5, destination: "みやぎ東日本大震災津波伝承館" },
-  a5: { x: 52.3, y: 36.3, destination: "震災伝承交流施設 MEET門脇" },
-  a8: { x: 55.7, y: 31.1, destination: "石巻市震災遺構 門脇小学校" },
-  a9: { x: 31.2, y: 41.8, destination: "石巻南浜津波復興祈念公園 市民活動拠点" },
-  a13: { x: 45.1, y: 40.5, destination: "石巻南浜津波復興祈念公園 聖人堀" },
-  a17: { x: 49.4, y: 30.0, destination: "石巻市震災遺構 門脇小学校" },
-  d19: { x: 70.2, y: 24.3, destination: "日和山公園 宮城県石巻市" },
-  d21: { x: 27.5, y: 49.7, destination: "石巻南浜津波復興祈念公園 洗掘湿地" },
-  d24: { x: 81.6, y: 39.9, destination: "石巻南浜津波復興祈念公園 門脇保育所跡" },
-  d24b: { x: 80.6, y: 44.8, destination: "宮城県石巻市南浜町一丁目7-20 石巻市立病院跡地" },
-  d25: { x: 40.4, y: 41.0, destination: "石巻南浜津波復興祈念公園 聖人堀" },
-  d26b: { x: 38.4, y: 24.9, destination: "石巻市震災遺構 門脇小学校" },
-  d28: { x: 34.9, y: 39.4, destination: "石巻南浜津波復興祈念公園 市民活動拠点" }
+  a2: { lat: 38.418799292092736, lng: 141.30169937383354 },
+  a5: { lat: 38.4204516155457, lng: 141.3045008676152 },
+  a9: { lat: 38.41880681336802, lng: 141.3019501235175 },
+  a13: { lat: 38.419025624097515, lng: 141.3034126885408 },
+  a15: { lat: 38.42120746941521, lng: 141.30474115502795 },
+  a17: { lat: 38.42047076687734, lng: 141.30450762875427 },
+  a19: { lat: 38.41450044958495, lng: 141.30138069376287 },
+  d20: { lat: 38.42047076687734, lng: 141.30450762875427 },
+  d21: { lat: 38.4180313128659, lng: 141.30089241238875 },
+  d24: { lat: 38.41883895055506, lng: 141.30670232251336 },
+  d25: { lat: 38.419025624097515, lng: 141.3034126885408 },
+  d28: { lat: 38.418813898091564, lng: 141.30251685172132 }
 };
 
 const words = [
@@ -1772,16 +1771,16 @@ function updateHint(ids) {
     ? "おなじマスをもういちどタップすると、こうさするカギにきりかわります。"
     : "同じマスをもう一度タップすると、交差するカギに切り替わります。";
   hintBody.innerHTML = `${clueFor(main)}${items.length > 1 ? `<small>${switchGuide}</small>` : ""}`;
-  goToMapBtn.classList.toggle("hidden", !mapPoints[main.id]?.destination);
+  goToMapBtn.classList.toggle("hidden", !mapPoints[main.id]);
   updateResumeFinalButton();
 }
 
 function openGoogleMapsDestination() {
   const point = mapPoints[activeWord()?.id];
-  if (!point?.destination) return;
+  if (!point) return;
   const params = new URLSearchParams({
     api: "1",
-    destination: point.destination,
+    destination: `${point.lat},${point.lng}`,
     travelmode: "walking"
   });
   window.open(`https://www.google.com/maps/dir/?${params}`, "_blank", "noopener,noreferrer");
@@ -1796,7 +1795,7 @@ function refreshCurrentHint() {
 function updateMapDestination() {
   const w = activeWord();
   const point = w ? mapPoints[w.id] : null;
-  if (!point) {
+  if (!point || !Number.isFinite(point.x) || !Number.isFinite(point.y)) {
     mapDestinationPin.classList.add("hidden");
     return;
   }
