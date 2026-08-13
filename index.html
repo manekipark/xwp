@@ -451,6 +451,18 @@
     gap: 10px;
     align-items: start;
   }
+  .hint-head-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .hint-head-actions .clue-map-btn {
+    margin: 0;
+    min-height: 42px;
+    padding: 7px 12px;
+    font-size: 14px;
+    white-space: nowrap;
+  }
   .hint-title { font-size: 28px; margin: 0 0 6px; font-weight: 800; }
   .hint-body { font-size: 18px; line-height: 1.55; margin: 0; color: var(--ink); }
   .hint-body small { display: block; margin-top: 6px; font-size: 13px; opacity: .8; }
@@ -558,13 +570,6 @@
     transform: translateY(2px);
     box-shadow: 0 1px 0 #d8d1c5;
   }
-  .kana-keyboard.is-empty .kana-keys::before {
-    content: "マスを選ぶと文字ボタンが表示されます";
-    display: flex;
-    align-items: center;
-    color: var(--muted);
-    font-size: 14px;
-  }
   .keyboard-actions { display: flex; gap: 8px; }
   .keyboard-action { min-width: 54px; font-size: 16px; }
   .keyboard-actions .clue-map-btn {
@@ -613,7 +618,7 @@
     width: 100%;
     min-width: 0;
     height: clamp(34px, 10vw, 42px);
-    border: 3px solid #222;
+    border: 3px solid var(--key-color, #222);
     border-radius: 8px;
     background: #fffdf8;
     color: var(--key-color, var(--ink));
@@ -862,6 +867,8 @@
     .hint-title { font-size: 23px; }
     .hint-body { font-size: 15px; }
     .kana-toggle-btn { min-width: 74px; height: 38px; font-size: 14px; }
+    .hint-head-actions { gap: 6px; }
+    .hint-head-actions .clue-map-btn { min-height: 38px; padding: 6px 9px; font-size: 12px; }
     .kana-keyboard { grid-template-columns: 1fr; padding: 10px 0 0; gap: 8px; }
     .kana-keys { gap: 6px; min-height: 44px; }
     .kana-key,
@@ -925,10 +932,12 @@
       <aside class="hint-panel">
         <div class="hint-head">
           <h2 id="hintTitle" class="hint-title">カギ</h2>
-          <button id="kanaToggleBtn" class="kana-toggle-btn" type="button" aria-pressed="false" aria-label="問題文をひらがなにする">ひらがな</button>
+          <div class="hint-head-actions">
+            <button id="resumeFinalBtn" class="clue-map-btn hidden" type="button">最終問題へ戻る</button>
+            <button id="kanaToggleBtn" class="kana-toggle-btn" type="button" aria-pressed="false" aria-label="問題文をひらがなにする">ひらがな</button>
+          </div>
         </div>
         <p id="hintBody" class="hint-body">マスを選ぶと、ここにカギが表示されます。</p>
-        <button id="resumeFinalBtn" class="clue-map-btn hidden" type="button">最終問題へ戻る</button>
         <section id="kanaKeyboard" class="kana-keyboard is-empty" aria-label="文字入力">
           <div id="activeAnswer" class="active-answer is-empty"></div>
           <div id="kanaKeys" class="kana-keys"></div>
