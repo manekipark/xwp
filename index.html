@@ -1668,12 +1668,19 @@ function closeFinalSolvedModal() {
   stopConfetti();
 }
 
+function isFinalSolutionCorrect(selection = finalSelection) {
+  return selection.length === FINAL_SEQUENCE.length
+    && selection.every((item, index) => item?.id === FINAL_SEQUENCE[index])
+    && selection.map(item => item.ch).join("") === FINAL_ANSWER;
+}
+
 function renderFinalChallenge() {
   const letters = keypointLetters();
+  const isCorrect = isFinalSolutionCorrect();
   finalAnswer.replaceChildren();
   finalBank.replaceChildren();
   finalAnswer.classList.toggle("is-empty", finalSelection.length === 0);
-  finalAnswer.classList.toggle("is-solved", finalSelection.map(item => item.ch).join("") === FINAL_ANSWER);
+  finalAnswer.classList.toggle("is-solved", isCorrect);
 
   FINAL_COLORS.forEach((color, index) => {
     const item = finalSelection[index];
@@ -1717,8 +1724,7 @@ function renderFinalChallenge() {
     finalBank.appendChild(button);
   });
 
-  const value = finalSelection.map(item => item.ch).join("");
-  if (value === FINAL_ANSWER) {
+  if (isCorrect) {
     finalResult.textContent = "";
     if (!finalSolvedAnnounced) {
       finalSolvedAnnounced = true;
