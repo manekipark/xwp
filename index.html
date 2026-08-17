@@ -187,6 +187,36 @@
     opacity: .5;
     pointer-events: none;
   }
+  .pixel-depth-layer {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .ambient-pixel {
+    position: absolute;
+    left: var(--pixel-x);
+    top: var(--pixel-y);
+    width: var(--pixel-size);
+    height: var(--pixel-size);
+    background: var(--pixel-color);
+    opacity: var(--pixel-opacity);
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, .58);
+    will-change: transform;
+    animation: ambientPixelWander var(--pixel-duration) var(--pixel-delay) ease-in-out infinite alternate;
+  }
+  .ambient-pixel.is-outline {
+    background: transparent;
+    border: max(1px, calc(var(--pixel-size) * .09)) solid var(--pixel-color);
+    box-shadow: none;
+  }
+  @keyframes ambientPixelWander {
+    0% { transform: translate3d(0, 0, 0) scale(var(--pixel-scale-a)); }
+    32% { transform: translate3d(var(--pixel-x1), var(--pixel-y1), 0) scale(var(--pixel-scale-b)); }
+    68% { transform: translate3d(var(--pixel-x2), var(--pixel-y2), 0) scale(var(--pixel-scale-c)); }
+    100% { transform: translate3d(var(--pixel-x3), var(--pixel-y3), 0) scale(var(--pixel-scale-a)); }
+  }
   .viewport { position: absolute; inset: 0; z-index: 1; overflow: hidden; touch-action: none; }
   .stage { position: absolute; left: 50%; top: 50%; transform-origin: 0 0; will-change: transform; }
   .board {
@@ -711,6 +741,7 @@
   }
   @media (prefers-reduced-motion: reduce) {
     .confetti-piece { animation: none; display: none; }
+    .pixel-depth-layer { display: none; }
   }
   .completion-card h2 {
     margin: 0 0 10px;
@@ -754,13 +785,14 @@
   }
   .tutorial-hand {
     position: fixed;
-    left: 0;
-    top: 0;
-    width: 76px;
-    height: 76px;
-    background: url("assets/tutorial-hand.png") center center / contain no-repeat;
+    left: var(--tutorial-start-x, 50vw);
+    top: var(--tutorial-start-y, 40vh);
+    width: 58px;
+    height: 79px;
+    background: url("assets/tutorial-hand.png") center center / 100% 100% no-repeat;
     filter: drop-shadow(0 4px 0 rgba(0, 0, 0, .35));
-    transform: translate(var(--tutorial-start-x, 50vw), var(--tutorial-start-y, 40vh)) translate(-16px, -58px) rotate(-12deg);
+    transform-origin: 7px 5px;
+    transform: translate(-7px, -5px) rotate(-8deg);
     opacity: 0;
   }
   .tutorial-overlay.is-cell .tutorial-pulse {
@@ -783,21 +815,21 @@
     42%, 100% { opacity: 0; transform: translate(-50%, -50%) scale(1.35); }
   }
   @keyframes tutorialTapCell {
-    0% { opacity: 0; transform: translate(var(--tutorial-start-x), var(--tutorial-start-y)) translate(-18px, -62px) rotate(-12deg) scale(.92); }
+    0% { opacity: 0; transform: translate(-7px, -5px) rotate(-8deg) scale(.94); }
     14% { opacity: 1; }
-    38% { transform: translate(var(--tutorial-start-x), var(--tutorial-start-y)) translate(-8px, -46px) rotate(-12deg) scale(.84); }
-    58% { transform: translate(var(--tutorial-start-x), var(--tutorial-start-y)) translate(-18px, -62px) rotate(-12deg) scale(.92); }
-    100% { opacity: 0; transform: translate(var(--tutorial-start-x), var(--tutorial-start-y)) translate(-18px, -62px) rotate(-12deg) scale(.92); }
+    38% { transform: translate(-7px, -5px) rotate(-8deg) scale(.8); }
+    58% { transform: translate(-7px, -5px) rotate(-8deg) scale(.94); }
+    100% { opacity: 0; transform: translate(-7px, -5px) rotate(-8deg) scale(.94); }
   }
   @keyframes tutorialChooseKey {
-    0% { opacity: 0; transform: translate(var(--tutorial-start-x), var(--tutorial-start-y)) translate(-18px, -62px) rotate(-12deg) scale(.92); }
+    0% { left: var(--tutorial-start-x); top: var(--tutorial-start-y); opacity: 0; transform: translate(-7px, -5px) rotate(-8deg) scale(.94); }
     10% { opacity: 1; }
-    24% { transform: translate(var(--tutorial-start-x), var(--tutorial-start-y)) translate(-10px, -48px) rotate(-12deg) scale(.86); }
-    36% { transform: translate(var(--tutorial-start-x), var(--tutorial-start-y)) translate(-18px, -62px) rotate(-12deg) scale(.92); }
-    62% { opacity: .76; transform: translate(var(--tutorial-end-x), var(--tutorial-end-y)) translate(-12px, -58px) rotate(-12deg) scale(.9); }
-    78% { opacity: 1; transform: translate(var(--tutorial-end-x), var(--tutorial-end-y)) translate(-6px, -44px) rotate(-12deg) scale(.84); }
-    92% { opacity: .7; transform: translate(var(--tutorial-end-x), var(--tutorial-end-y)) translate(-12px, -58px) rotate(-12deg) scale(.9); }
-    100% { opacity: 0; transform: translate(var(--tutorial-end-x), var(--tutorial-end-y)) translate(-12px, -58px) rotate(-12deg) scale(.9); }
+    24% { left: var(--tutorial-start-x); top: var(--tutorial-start-y); transform: translate(-7px, -5px) rotate(-8deg) scale(.8); }
+    36% { left: var(--tutorial-start-x); top: var(--tutorial-start-y); transform: translate(-7px, -5px) rotate(-8deg) scale(.94); }
+    62% { left: var(--tutorial-end-x); top: var(--tutorial-end-y); opacity: .76; transform: translate(-7px, -5px) rotate(-8deg) scale(.9); }
+    78% { left: var(--tutorial-end-x); top: var(--tutorial-end-y); opacity: 1; transform: translate(-7px, -5px) rotate(-8deg) scale(.8); }
+    92% { left: var(--tutorial-end-x); top: var(--tutorial-end-y); opacity: .7; transform: translate(-7px, -5px) rotate(-8deg) scale(.9); }
+    100% { left: var(--tutorial-end-x); top: var(--tutorial-end-y); opacity: 0; transform: translate(-7px, -5px) rotate(-8deg) scale(.9); }
   }
 
   @media (max-width: 760px) {
@@ -895,6 +927,7 @@
         </nav>
       </header>
       <section class="main-area">
+        <div id="pixelDepthLayer" class="pixel-depth-layer" aria-hidden="true"></div>
         <div id="viewport" class="viewport">
           <div id="stage" class="stage">
             <div id="board" class="board" aria-label="クロスワード盤面"></div>
@@ -1139,6 +1172,7 @@ const finalSolvedModal = document.getElementById("finalSolvedModal");
 const finalSolvedCloseBtn = document.getElementById("finalSolvedCloseBtn");
 const confettiLayer = document.getElementById("confettiLayer");
 const tutorialOverlay = document.getElementById("tutorialOverlay");
+const pixelDepthLayer = document.getElementById("pixelDepthLayer");
 
 let cellMap = new Map();
 let selectedKey = null;
@@ -1154,6 +1188,7 @@ let mapLastPinch = null;
 let mapDragStart = null;
 let tutorialPhase = null;
 let tutorialTargetKey = null;
+let tutorialTrackFrame = 0;
 let activeMoveKey = null;
 let activeSlotTap = { key: null, time: 0 };
 let tapCycle = { key: null, index: 0 };
@@ -1162,11 +1197,69 @@ let blankLongPress = null;
 let blankPressStart = null;
 let puzzleCompleted = false;
 let finalChallengeOpen = false;
+let pixelLayoutMode = null;
 let finalSelection = [];
 let finalMoveIndex = null;
 let finalSlotTap = { index: null, time: 0 };
 let finalSolvedAnnounced = false;
 let clueReadingMode = false;
+
+function createSeededRandom(seed) {
+  let value = seed >>> 0;
+  return () => {
+    value += 0x6d2b79f5;
+    let result = value;
+    result = Math.imul(result ^ (result >>> 15), result | 1);
+    result ^= result + Math.imul(result ^ (result >>> 7), result | 61);
+    return ((result ^ (result >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function syncAmbientPixels() {
+  if (!pixelDepthLayer) return;
+  const compact = window.innerWidth <= 760;
+  const mode = compact ? "compact" : "wide";
+  if (pixelLayoutMode === mode && pixelDepthLayer.childElementCount) return;
+  pixelLayoutMode = mode;
+  const random = createSeededRandom(compact ? 3112027 : 3112026);
+  const colors = ["#d9f2ff", "#b8e3fb", "#8bcef3", "#59afe6", "#2e97d1"];
+  const count = compact ? 28 : 42;
+  const fragment = document.createDocumentFragment();
+
+  for (let index = 0; index < count; index += 1) {
+    const pixel = document.createElement("span");
+    const depth = random();
+    const edgeWeighted = random() < .72;
+    const y = edgeWeighted
+      ? (random() < .5 ? random() * 35 : 65 + random() * 35)
+      : random() * 100;
+    const size = (compact ? 5 : 6) + depth * (compact ? 15 : 23);
+    const travel = (compact ? 12 : 18) + depth * (compact ? 34 : 54);
+    const duration = 13 + (1 - depth) * 19 + random() * 6;
+    const offset = () => `${((random() * 2 - 1) * travel).toFixed(1)}px`;
+
+    pixel.className = `ambient-pixel${random() < .24 ? " is-outline" : ""}`;
+    pixel.style.setProperty("--pixel-x", `${(random() * 100).toFixed(2)}%`);
+    pixel.style.setProperty("--pixel-y", `${y.toFixed(2)}%`);
+    pixel.style.setProperty("--pixel-size", `${size.toFixed(1)}px`);
+    pixel.style.setProperty("--pixel-color", colors[Math.floor(random() * colors.length)]);
+    pixel.style.setProperty("--pixel-opacity", `${(.08 + depth * .18).toFixed(2)}`);
+    pixel.style.setProperty("--pixel-duration", `${duration.toFixed(1)}s`);
+    pixel.style.setProperty("--pixel-delay", `${(-random() * duration).toFixed(1)}s`);
+    pixel.style.setProperty("--pixel-x1", offset());
+    pixel.style.setProperty("--pixel-y1", offset());
+    pixel.style.setProperty("--pixel-x2", offset());
+    pixel.style.setProperty("--pixel-y2", offset());
+    pixel.style.setProperty("--pixel-x3", offset());
+    pixel.style.setProperty("--pixel-y3", offset());
+    pixel.style.setProperty("--pixel-scale-a", `${(.88 + random() * .16).toFixed(2)}`);
+    pixel.style.setProperty("--pixel-scale-b", `${(.94 + random() * .2).toFixed(2)}`);
+    pixel.style.setProperty("--pixel-scale-c", `${(.86 + random() * .22).toFixed(2)}`);
+    fragment.appendChild(pixel);
+  }
+
+  pixelDepthLayer.replaceChildren(fragment);
+}
 
 function key(r, c) { return `${r},${c}`; }
 function wordCells(w) {
@@ -2230,6 +2323,8 @@ function rectCenter(rect) {
 
 function hideTutorial() {
   if (!tutorialOverlay) return;
+  if (tutorialTrackFrame) cancelAnimationFrame(tutorialTrackFrame);
+  tutorialTrackFrame = 0;
   tutorialOverlay.classList.add("hidden");
   tutorialOverlay.classList.remove("is-cell", "is-key");
   tutorialPhase = null;
@@ -2237,17 +2332,45 @@ function hideTutorial() {
   document.removeEventListener("pointerdown", onTutorialPointerDown, true);
 }
 
+function trackTutorialTargets() {
+  tutorialTrackFrame = 0;
+  if (!tutorialOverlay || !tutorialPhase || tutorialOverlay.classList.contains("hidden")) return;
+  const cell = tutorialTargetKey
+    ? document.querySelector(`[data-key="${tutorialTargetKey}"]`)
+    : document.querySelector(".cell.selected");
+  if (cell) {
+    const start = rectCenter(cell.getBoundingClientRect());
+    tutorialOverlay.style.setProperty("--tutorial-start-x", `${start.x}px`);
+    tutorialOverlay.style.setProperty("--tutorial-start-y", `${start.y}px`);
+  }
+  if (tutorialPhase === "key") {
+    const keyButton = kanaKeys.querySelector(".kana-key");
+    if (keyButton) {
+      const end = rectCenter(keyButton.getBoundingClientRect());
+      tutorialOverlay.style.setProperty("--tutorial-end-x", `${end.x}px`);
+      tutorialOverlay.style.setProperty("--tutorial-end-y", `${end.y}px`);
+    }
+  }
+  tutorialTrackFrame = requestAnimationFrame(trackTutorialTargets);
+}
+
+function startTutorialTracking() {
+  if (tutorialTrackFrame) cancelAnimationFrame(tutorialTrackFrame);
+  tutorialTrackFrame = requestAnimationFrame(trackTutorialTargets);
+}
+
 function onTutorialPointerDown(e) {
   const target = e.target;
   const cell = target.closest?.(".cell");
+  const keyButton = target.closest?.(".kana-key");
+  if (tutorialPhase && keyButton) {
+    markTutorialSeen();
+    hideTutorial();
+    return;
+  }
   if (tutorialPhase === "cell" && cell) {
     tutorialTargetKey = cell.dataset.key || tutorialTargetKey;
     requestAnimationFrame(() => requestAnimationFrame(showTutorialKeyStep));
-    return;
-  }
-  if (tutorialPhase === "key" && target.closest?.(".kana-key")) {
-    markTutorialSeen();
-    hideTutorial();
   }
 }
 
@@ -2262,6 +2385,7 @@ function showTutorialCellStep(targetKey) {
   tutorialOverlay.classList.remove("hidden", "is-cell", "is-key");
   void tutorialOverlay.offsetWidth;
   tutorialOverlay.classList.add("is-cell");
+  startTutorialTracking();
   document.addEventListener("pointerdown", onTutorialPointerDown, true);
 }
 
@@ -2280,6 +2404,7 @@ function showTutorialKeyStep() {
   tutorialOverlay.classList.remove("hidden", "is-cell", "is-key");
   void tutorialOverlay.offsetWidth;
   tutorialOverlay.classList.add("is-key");
+  startTutorialTracking();
 }
 
 function showTutorialOnce() {
@@ -2344,10 +2469,12 @@ finalBackBtn.addEventListener("click", returnToBoard);
 completionCloseBtn.addEventListener("click", () => completionModal.classList.add("hidden"));
 finalSolvedCloseBtn.addEventListener("click", closeFinalSolvedModal);
 window.addEventListener("resize", () => {
+  syncAmbientPixels();
   centerBoard();
   if (currentMode === "map") centerMap();
 });
 
+syncAmbientPixels();
 createCells();
 renderKeyboard();
 checkCompletion({ announce: true });
