@@ -187,36 +187,6 @@
     opacity: .5;
     pointer-events: none;
   }
-  .pixel-depth-layer {
-    position: absolute;
-    inset: 0;
-    z-index: 0;
-    overflow: hidden;
-    pointer-events: none;
-  }
-  .ambient-pixel {
-    position: absolute;
-    left: var(--pixel-x);
-    top: var(--pixel-y);
-    width: var(--pixel-size);
-    height: var(--pixel-size);
-    background: var(--pixel-color);
-    opacity: var(--pixel-opacity);
-    box-shadow: 0 0 0 1px rgba(255, 255, 255, .58);
-    will-change: transform;
-    animation: ambientPixelWander var(--pixel-duration) var(--pixel-delay) ease-in-out infinite alternate;
-  }
-  .ambient-pixel.is-outline {
-    background: transparent;
-    border: max(1px, calc(var(--pixel-size) * .09)) solid var(--pixel-color);
-    box-shadow: none;
-  }
-  @keyframes ambientPixelWander {
-    0% { transform: translate3d(0, 0, 0) scale(var(--pixel-scale-a)); }
-    32% { transform: translate3d(var(--pixel-x1), var(--pixel-y1), 0) scale(var(--pixel-scale-b)); }
-    68% { transform: translate3d(var(--pixel-x2), var(--pixel-y2), 0) scale(var(--pixel-scale-c)); }
-    100% { transform: translate3d(var(--pixel-x3), var(--pixel-y3), 0) scale(var(--pixel-scale-a)); }
-  }
   .viewport { position: absolute; inset: 0; z-index: 1; overflow: hidden; touch-action: none; }
   .stage { position: absolute; left: 50%; top: 50%; transform-origin: 0 0; will-change: transform; }
   .board {
@@ -578,6 +548,40 @@
     outline: 4px dashed #f2a900;
     outline-offset: 2px;
   }
+  .active-letter,
+  .final-slot,
+  .kana-key,
+  .final-chip {
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .active-letter.is-drag-source,
+  .final-slot.is-drag-source,
+  .kana-key.is-drag-source,
+  .final-chip.is-drag-source {
+    opacity: .28;
+  }
+  .active-letter.is-drop-target,
+  .final-slot.is-drop-target {
+    outline: 4px solid #09a7df;
+    outline-offset: 2px;
+  }
+  .letter-drag-ghost {
+    position: fixed;
+    z-index: 1000;
+    display: grid;
+    place-items: center;
+    pointer-events: none;
+    border: 3px solid #222;
+    border-radius: 8px;
+    background: #fffdf8;
+    color: var(--ink);
+    font-size: 21px;
+    font-weight: 900;
+    box-shadow: 0 8px 18px rgba(23, 78, 104, .28);
+    transform: translate(-50%, -58%) scale(1.08);
+  }
   .kana-keys {
     display: flex;
     flex-wrap: wrap;
@@ -741,7 +745,6 @@
   }
   @media (prefers-reduced-motion: reduce) {
     .confetti-piece { animation: none; display: none; }
-    .pixel-depth-layer { display: none; }
   }
   .completion-card h2 {
     margin: 0 0 10px;
@@ -891,6 +894,54 @@
     .final-answer { min-height: 40px; }
     .completion-card h2 { font-size: 24px; }
   }
+  .board-tools { position: fixed; top: max(8px, env(safe-area-inset-top)); right: 8px; z-index: 12; display: flex; gap: 6px; align-items: center; }
+  .tool-button { min-width: 44px; min-height: 44px; border: 2px solid var(--blue-border); border-radius: 8px; background: #f7fdff; color: #174e68; font-weight: 700; padding: 6px 10px; }
+  .progress-button { font-size: 13px; }
+  button:focus-visible, input:focus-visible { outline: 3px solid #174e68; outline-offset: 3px; }
+  .hint-head { position: sticky; top: -12px; z-index: 3; background: var(--hint); padding: 8px 0; }
+  .hint-head-actions { flex-wrap: wrap; justify-content: flex-end; }
+  .hint-head-actions button { min-height: 44px; height: auto; font-size: 14px; }
+  .hint-panel { scroll-padding-top: 110px; }
+  .hint-panel.is-expanded { height: 68dvh; max-height: 68dvh; }
+  .direction-switch { display: flex; gap: 6px; margin: 6px 0; }
+  .direction-switch:empty { display: none; }
+  .direction-switch button[aria-pressed="true"] { background: #176586; color: white; }
+  .answer-tools { display: flex; gap: 8px; align-items: center; margin-top: 8px; }
+  .answer-status { font-size: 14px; }
+  .active-letter { min-width: 44px; height: 44px; touch-action: pan-y; }
+  .kana-key, .final-chip { min-width: 44px; min-height: 44px; }
+  .active-letter[data-state="wrong"] { border-style: dashed; border-color: #b42318; }
+  .active-letter[data-state="correct"] { border-color: #176586; }
+  .final-slot { min-height: 44px; text-shadow: 0 0 1px #333; }
+  .final-chip { color: var(--key-color); text-shadow: 0 0 1px #333; }
+  .completion-card { max-height: 85dvh; overflow: auto; }
+  dialog.ui-dialog { width: min(92vw, 520px); max-height: 82dvh; overflow: auto; border: 2px solid var(--blue-border); border-radius: 8px; padding: 20px; color: var(--ink); background: #f7fdff; }
+  dialog::backdrop { background: #152d4266; }
+  .dialog-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  .dialog-head h2 { margin: 0; font-size: 22px; }
+  .guide-list { padding-left: 22px; line-height: 1.8; }
+  .clue-list { display: grid; gap: 8px; margin-top: 16px; }
+  .clue-list button { text-align: left; }
+  @media (min-width: 1000px) {
+    .main-area { right: 430px; }
+    .hint-panel, .hint-panel.is-expanded { left: auto; right: 12px; top: 64px; bottom: 12px; width: 406px; height: auto; max-height: none; padding: 14px; }
+    .board-tools { right: 12px; }
+    #panelToggle { display: none; }
+    .hint-title { font-size: 23px; }
+    .hint-body { font-size: 17px; }
+  }
+  @media (max-width: 760px) {
+    .hint-panel { max-height: min(48dvh, 320px); padding: 10px 12px; }
+    .hint-head { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+    .hint-head-actions { justify-content: flex-start; }
+    .hint-title { font-size: 21px; }
+    .keyboard-actions .clue-map-btn { min-width: 112px; padding: 6px; font-size: 14px; }
+    .final-answer { padding: 5px 3px; gap: 3px; }
+    .final-slot { padding: 0; font-size: 18px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .tutorial-hand, .tutorial-pulse { animation: none !important; }
+  }
 </style>
 </head>
 <body>
@@ -921,13 +972,17 @@
 
   <section id="gameScreen" class="screen game-screen hidden">
     <div class="app-frame">
+      <div class="board-tools" aria-label="盤面の操作">
+        <button id="progressBtn" class="tool-button progress-button" type="button" title="カギ一覧を開く">正解 0</button>
+        <button id="fitBtn" class="tool-button" type="button" aria-label="盤面全体を表示" title="盤面全体を表示">⛶</button>
+        <button id="helpBtn" class="tool-button" type="button" aria-label="操作ガイド" title="操作ガイド">?</button>
+      </div>
       <header class="topbar">
         <nav class="tabs" aria-label="表示切り替え">
           <button id="answerTab" class="tab" aria-selected="true">回答シート</button>
         </nav>
       </header>
       <section class="main-area">
-        <div id="pixelDepthLayer" class="pixel-depth-layer" aria-hidden="true"></div>
         <div id="viewport" class="viewport">
           <div id="stage" class="stage">
             <div id="board" class="board" aria-label="クロスワード盤面"></div>
@@ -950,8 +1005,10 @@
             <button id="finalBackBtn" class="clue-map-btn hidden" type="button">もどる</button>
             <button id="resumeFinalBtn" class="clue-map-btn hidden" type="button">もどる</button>
             <button id="kanaToggleBtn" class="kana-toggle-btn" type="button" aria-pressed="false" aria-label="問題文をひらがなにする">ひらがな</button>
+            <button id="panelToggle" class="tool-button" type="button" aria-expanded="false" aria-label="カギ欄を広げる" title="カギ欄を広げる">⌃</button>
           </div>
         </div>
+        <div id="directionSwitch" class="direction-switch" aria-label="カギの切替"></div>
         <p id="hintBody" class="hint-body">マスを選ぶと、ここにカギが表示されます。</p>
         <section id="kanaKeyboard" class="kana-keyboard is-empty" aria-label="文字入力">
           <div id="activeAnswer" class="active-answer is-empty"></div>
@@ -968,7 +1025,26 @@
           <div id="finalBank" class="final-bank"></div>
           <div id="finalResult" class="final-result"></div>
         </section>
+        <div class="answer-tools">
+          <button id="removeLetterBtn" class="tool-button" type="button" disabled aria-label="選択した文字を取り消す" title="選択した文字を取り消す">⌫</button>
+          <span id="answerStatus" class="answer-status" role="status" aria-live="polite"></span>
+        </div>
       </aside>
+      <dialog id="helpDialog" class="ui-dialog" aria-labelledby="helpTitle">
+        <div class="dialog-head"><h2 id="helpTitle">操作ガイド</h2><button class="tool-button" data-close-dialog aria-label="閉じる">×</button></div>
+        <ol class="guide-list">
+          <li>盤面のマス、または正解数のボタンからカギを選びます。</li>
+          <li>候補の文字を押すと入力できます。青い文字は正解です。</li>
+          <li>入力欄の文字を選び、移動先を押すと入れ替わります。ドラッグでも移動できます。</li>
+          <li>選んだ文字は⌫で取り消せます。入力欄の文字を2回続けて押しても取り消せます。</li>
+          <li>盤面はドラッグで移動、ピンチやホイールで拡大縮小。⛶で全体に戻ります。</li>
+        </ol>
+        <button id="replayTutorialBtn" class="tool-button">指の案内をもう一度見る</button>
+      </dialog>
+      <dialog id="clueDialog" class="ui-dialog" aria-labelledby="clueListTitle">
+        <div class="dialog-head"><h2 id="clueListTitle">カギ一覧</h2><button class="tool-button" data-close-dialog aria-label="閉じる">×</button></div>
+        <div id="clueList" class="clue-list"></div>
+      </dialog>
       <section id="completionModal" class="completion-modal hidden" role="dialog" aria-modal="true" aria-labelledby="completionTitle">
         <div class="completion-card">
           <h2 id="completionTitle">全問正解！</h2>
@@ -979,7 +1055,7 @@
       <section id="finalSolvedModal" class="completion-modal hidden" role="dialog" aria-modal="true" aria-labelledby="finalSolvedTitle">
         <div id="confettiLayer" class="confetti-layer" aria-hidden="true"></div>
         <div class="completion-card">
-          <h2 id="finalSolvedTitle">congratulation！</h2>
+          <h2 id="finalSolvedTitle">Congratulations!</h2>
           <p>宝（たから）ものは、あなたの持っている大切な命（タイセツナイノチ）です。どうか、いつまでも大切にしてください。</p>
           <button id="finalSolvedCloseBtn" type="button">閉じる</button>
         </div>
@@ -1172,7 +1248,6 @@ const finalSolvedModal = document.getElementById("finalSolvedModal");
 const finalSolvedCloseBtn = document.getElementById("finalSolvedCloseBtn");
 const confettiLayer = document.getElementById("confettiLayer");
 const tutorialOverlay = document.getElementById("tutorialOverlay");
-const pixelDepthLayer = document.getElementById("pixelDepthLayer");
 
 let cellMap = new Map();
 let selectedKey = null;
@@ -1197,69 +1272,11 @@ let blankLongPress = null;
 let blankPressStart = null;
 let puzzleCompleted = false;
 let finalChallengeOpen = false;
-let pixelLayoutMode = null;
 let finalSelection = [];
 let finalMoveIndex = null;
 let finalSlotTap = { index: null, time: 0 };
 let finalSolvedAnnounced = false;
 let clueReadingMode = false;
-
-function createSeededRandom(seed) {
-  let value = seed >>> 0;
-  return () => {
-    value += 0x6d2b79f5;
-    let result = value;
-    result = Math.imul(result ^ (result >>> 15), result | 1);
-    result ^= result + Math.imul(result ^ (result >>> 7), result | 61);
-    return ((result ^ (result >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
-function syncAmbientPixels() {
-  if (!pixelDepthLayer) return;
-  const compact = window.innerWidth <= 760;
-  const mode = compact ? "compact" : "wide";
-  if (pixelLayoutMode === mode && pixelDepthLayer.childElementCount) return;
-  pixelLayoutMode = mode;
-  const random = createSeededRandom(compact ? 3112027 : 3112026);
-  const colors = ["#d9f2ff", "#b8e3fb", "#8bcef3", "#59afe6", "#2e97d1"];
-  const count = compact ? 28 : 42;
-  const fragment = document.createDocumentFragment();
-
-  for (let index = 0; index < count; index += 1) {
-    const pixel = document.createElement("span");
-    const depth = random();
-    const edgeWeighted = random() < .72;
-    const y = edgeWeighted
-      ? (random() < .5 ? random() * 35 : 65 + random() * 35)
-      : random() * 100;
-    const size = (compact ? 5 : 6) + depth * (compact ? 15 : 23);
-    const travel = (compact ? 12 : 18) + depth * (compact ? 34 : 54);
-    const duration = 13 + (1 - depth) * 19 + random() * 6;
-    const offset = () => `${((random() * 2 - 1) * travel).toFixed(1)}px`;
-
-    pixel.className = `ambient-pixel${random() < .24 ? " is-outline" : ""}`;
-    pixel.style.setProperty("--pixel-x", `${(random() * 100).toFixed(2)}%`);
-    pixel.style.setProperty("--pixel-y", `${y.toFixed(2)}%`);
-    pixel.style.setProperty("--pixel-size", `${size.toFixed(1)}px`);
-    pixel.style.setProperty("--pixel-color", colors[Math.floor(random() * colors.length)]);
-    pixel.style.setProperty("--pixel-opacity", `${(.08 + depth * .18).toFixed(2)}`);
-    pixel.style.setProperty("--pixel-duration", `${duration.toFixed(1)}s`);
-    pixel.style.setProperty("--pixel-delay", `${(-random() * duration).toFixed(1)}s`);
-    pixel.style.setProperty("--pixel-x1", offset());
-    pixel.style.setProperty("--pixel-y1", offset());
-    pixel.style.setProperty("--pixel-x2", offset());
-    pixel.style.setProperty("--pixel-y2", offset());
-    pixel.style.setProperty("--pixel-x3", offset());
-    pixel.style.setProperty("--pixel-y3", offset());
-    pixel.style.setProperty("--pixel-scale-a", `${(.88 + random() * .16).toFixed(2)}`);
-    pixel.style.setProperty("--pixel-scale-b", `${(.94 + random() * .2).toFixed(2)}`);
-    pixel.style.setProperty("--pixel-scale-c", `${(.86 + random() * .22).toFixed(2)}`);
-    fragment.appendChild(pixel);
-  }
-
-  pixelDepthLayer.replaceChildren(fragment);
-}
 
 function key(r, c) { return `${r},${c}`; }
 function wordCells(w) {
@@ -1378,6 +1395,7 @@ function createCells() {
     input.inputMode = "kana";
     input.autocomplete = "off";
     input.readOnly = true;
+    input.tabIndex = -1;
     input.dataset.key = key(cell.r, cell.c);
     if (!isAnswerCharacter(cell.answer)) {
       input.value = cell.answer;
@@ -1385,7 +1403,7 @@ function createCells() {
       input.tabIndex = -1;
       input.setAttribute("aria-readonly", "true");
     }
-    input.setAttribute("aria-label", `${cell.r}行${cell.c}列`);
+    input.setAttribute("aria-label", `${cell.words.map(id => { const w = words.find(word => word.id === id); return `${dirLabel(w.d)}${w.n}`; }).join("・")}、${cell.r}行${cell.c}列`);
     input.addEventListener("pointerdown", () => {
       selectCell(input.dataset.key, true);
     });
@@ -1441,6 +1459,7 @@ function createGridLines() {
 function selectCell(k, fromTap = false) {
   if (currentMode !== "answer") return;
   selectedKey = k;
+  document.querySelectorAll('.cell input').forEach(input => { input.tabIndex = input.dataset.key === k ? 0 : -1; });
   const data = cellMap.get(k);
   if (!data) return;
   const ids = data.words;
@@ -1471,6 +1490,7 @@ function selectCell(k, fromTap = false) {
 }
 
 function renderKeyboard() {
+  updateReviewUI();
   const choices = activeChoices();
   renderActiveAnswer();
   kanaKeys.replaceChildren();
@@ -1483,6 +1503,7 @@ function renderKeyboard() {
     button.type = "button";
     button.className = "kana-key";
     button.textContent = ch;
+    button.dataset.kanaValue = ch;
     button.setAttribute("aria-label", `${ch}を入力`);
     button.addEventListener("click", () => inputChoice(ch));
     kanaKeys.appendChild(button);
@@ -1549,26 +1570,14 @@ function renderActiveAnswer() {
     button.className = "active-letter";
     button.classList.toggle("is-empty", !input?.value);
     button.classList.toggle("is-current", k === selectedKey);
-    button.classList.toggle("is-held", !!input?.value && k === activeMoveKey);
     button.textContent = input?.value || "□";
+    button.dataset.slotKey = k;
+    button.dataset.state = !input?.value ? "empty" : canonicalKana(input.value) === pos.ch ? "correct" : "wrong";
     button.setAttribute("aria-label", input?.value ? `${input.value}を移動` : `${pos.r}行${pos.c}列へ移動`);
     button.addEventListener("click", e => {
       e.preventDefault();
-      const now = Date.now();
-      if (input?.value && activeSlotTap.key === k && now - activeSlotTap.time < 700) {
-        activeSlotTap = { key: null, time: 0 };
-        clearInputByKey(k);
-        return;
-      }
-      activeSlotTap = { key: k, time: now };
-      if (activeMoveKey && activeMoveKey !== k) {
-        moveActiveLetter(activeMoveKey, k);
-        return;
-      }
       selectCell(k);
       document.querySelector(`[data-key="${k}"] input`)?.focus();
-      activeMoveKey = input?.value ? k : null;
-      renderKeyboard();
     });
     activeAnswer.appendChild(button);
   });
@@ -1585,6 +1594,22 @@ function inputChoice(ch) {
   save();
   refreshCurrentHint();
   if (!checkCompletion({ announce: true }) && !moveNext()) renderKeyboard();
+}
+
+function inputChoiceAtKey(ch, k) {
+  const input = inputForKey(k);
+  if (!input || !activeChoices().includes(ch)) return;
+  if (!isAnswerCharacter(input.closest(".cell")?.dataset.answer || "")) return;
+  input.value = ch;
+  activeMoveKey = null;
+  activeSlotTap = { key: null, time: 0 };
+  validateCell(input);
+  save();
+  refreshCurrentHint();
+  selectCell(k);
+  input.focus();
+  checkCompletion({ announce: true });
+  renderKeyboard();
 }
 
 function clearSelectedCell() {
@@ -1619,6 +1644,7 @@ function isPuzzleComplete() {
 }
 
 function checkCompletion({ announce = false } = {}) {
+  updateReviewUI();
   if (isPuzzleComplete()) {
     showFinalChallenge(false, announce);
     return true;
@@ -1642,6 +1668,7 @@ function keypointLetters() {
 }
 
 function setFinalHintText() {
+  document.getElementById("directionSwitch").replaceChildren();
   hintTitle.textContent = "最終問題";
   hintBody.textContent = "色つきのキーポイントマスの文字をならべかえて、たからものを見つけよう。";
   goToMapBtn.classList.add("hidden");
@@ -1759,6 +1786,7 @@ function isFinalSolutionCorrect(selection = finalSelection) {
 }
 
 function renderFinalChallenge() {
+  updateReviewUI();
   const letters = keypointLetters();
   const isCorrect = isFinalSolutionCorrect();
   finalAnswer.replaceChildren();
@@ -1772,32 +1800,12 @@ function renderFinalChallenge() {
     button.type = "button";
     button.className = "final-slot";
     button.textContent = item ? item.ch : "□";
+    button.dataset.finalIndex = index;
+    button.setAttribute("aria-label", item ? `${index + 1}文字目、${colorName(item.color)}の${item.ch}を移動` : `${index + 1}文字目、未入力`);
     button.classList.toggle("is-empty", !item);
-    button.classList.toggle("is-held", item && index === finalMoveIndex);
     button.disabled = !item;
     if (item) {
       button.style.setProperty("--key-color", item.color || "#222");
-      button.addEventListener("click", e => {
-        e.preventDefault();
-        const now = Date.now();
-        if (finalSlotTap.index === index && now - finalSlotTap.time < 700) {
-          finalSelection = finalSelection.filter(selected => selected.id !== item.id);
-          finalMoveIndex = null;
-          finalSlotTap = { index: null, time: 0 };
-          renderFinalChallenge();
-          return;
-        }
-        finalSlotTap = { index, time: now };
-        if (finalMoveIndex === null || finalMoveIndex === index) {
-          finalMoveIndex = index;
-        } else {
-          const held = finalSelection[finalMoveIndex];
-          finalSelection[finalMoveIndex] = item;
-          finalSelection[index] = held;
-          finalMoveIndex = null;
-        }
-        renderFinalChallenge();
-      });
     }
     finalAnswer.appendChild(button);
   });
@@ -1830,6 +1838,8 @@ function finalChip(item, inAnswer) {
   button.className = "final-chip";
   button.style.setProperty("--key-color", item.color || "#222");
   button.textContent = item.ch;
+  button.dataset.finalItemId = item.id;
+  button.setAttribute("aria-label", `${colorName(item.color)}の${item.ch}を入力`);
   button.addEventListener("click", () => {
     if (inAnswer) {
       finalSelection = finalSelection.filter(selected => selected.id !== item.id);
@@ -1855,6 +1865,7 @@ function movePrevious() {
 }
 
 function updateHint(ids) {
+  renderDirectionSwitch(ids);
   const items = ids.map(id => words.find(w => w.id === id)).filter(Boolean);
   if (!items.length) {
     hintTitle.textContent = "カギ";
@@ -1935,8 +1946,10 @@ function onKeyDown(e) {
       next.focus();
     }
   }
-  if (e.key === "Backspace" && !e.currentTarget.value) {
-    movePrevious();
+  if (e.key === "Backspace" || e.key === "Delete") {
+    e.preventDefault();
+    if (e.currentTarget.value) clearSelectedCell();
+    else movePrevious();
   }
   if (e.key.length === 1) {
     const choice = normalizeKana(e.key);
@@ -1991,13 +2004,14 @@ function resetAnswers({ ask = true } = {}) {
 function boardVisibleBounds() {
   const rect = viewport.getBoundingClientRect();
   const panelRect = document.querySelector(".hint-panel").getBoundingClientRect();
-  const panelTop = panelRect.top > rect.top ? panelRect.top : rect.bottom;
-  const visibleHeight = Math.max(220, panelTop - rect.top - 14);
+  const overlaps = panelRect.left < rect.right && panelRect.right > rect.left;
+  const panelTop = overlaps && panelRect.top > rect.top ? panelRect.top : rect.bottom;
+  const visibleHeight = Math.max(100, panelTop - rect.top - 14);
   return {
     rect,
     left: -rect.width / 2,
     right: rect.width / 2,
-    top: -rect.height / 2,
+    top: -rect.height / 2 + 58,
     bottom: -rect.height / 2 + visibleHeight
   };
 }
@@ -2021,7 +2035,7 @@ function clampBoardTransform() {
   const bounds = boardVisibleBounds();
   if (!bounds.rect.width || !bounds.rect.height) return;
   const size = boardSize();
-  const minScale = Math.max(.35, boardFitScale() * .9);
+  const minScale = Math.max(.1, boardFitScale() * .9);
   transform.scale = Math.max(minScale, Math.min(2.8, transform.scale));
   const scaledWidth = size.width * transform.scale;
   const scaledHeight = size.height * transform.scale;
@@ -2081,17 +2095,16 @@ function clampMapTransform() {
 }
 
 function centerBoard() {
-  const rect = viewport.getBoundingClientRect();
-  const panelRect = document.querySelector(".hint-panel").getBoundingClientRect();
+  const bounds = boardVisibleBounds();
+  const rect = bounds.rect;
   if (!rect.width || !rect.height) return;
   const boardWidth = 18 * parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--cell"));
   const boardHeight = 20 * parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--cell"));
-  const panelTop = panelRect.top > rect.top ? panelRect.top : rect.bottom;
-  const visibleHeight = Math.max(220, panelTop - rect.top - 14);
+  const visibleHeight = bounds.bottom - bounds.top;
   transform.scale = Math.min(rect.width / (boardWidth + 40), visibleHeight / (boardHeight + 40), 1.08);
   const boardTop = Math.max(14, (visibleHeight - boardHeight * transform.scale) / 2);
   transform.x = -(boardWidth * transform.scale) / 2;
-  transform.y = boardTop - rect.height / 2;
+  transform.y = boardTop + bounds.top;
   applyTransform();
 }
 
@@ -2183,7 +2196,7 @@ viewport.addEventListener("pointerdown", e => {
   pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
   viewport.setPointerCapture(e.pointerId);
   if (pointers.size === 1) dragStart = { x: e.clientX, y: e.clientY, tx: transform.x, ty: transform.y };
-  if (pointers.size === 2) lastPinch = getPinch();
+  if (pointers.size === 2) { clearBlankLongPress(); lastPinch = getPinch(); }
   if (isBlankBoardTarget(e.target) && pointers.size === 1) {
     blankPressStart = { x: e.clientX, y: e.clientY, time: Date.now() };
     blankLongPress = setTimeout(maybeResetFromBlankLongPress, 750);
@@ -2225,7 +2238,8 @@ viewport.addEventListener("pointermove", e => {
     clearBlankLongPress();
     pointers.delete(e.pointerId);
     lastPinch = null;
-    dragStart = null;
+    const remaining = [...pointers.values()][0];
+    dragStart = remaining ? { x: remaining.x, y: remaining.y, tx: transform.x, ty: transform.y } : null;
   });
 });
 viewport.addEventListener("wheel", e => {
@@ -2469,13 +2483,259 @@ finalBackBtn.addEventListener("click", returnToBoard);
 completionCloseBtn.addEventListener("click", () => completionModal.classList.add("hidden"));
 finalSolvedCloseBtn.addEventListener("click", closeFinalSolvedModal);
 window.addEventListener("resize", () => {
-  syncAmbientPixels();
   centerBoard();
   if (currentMode === "map") centerMap();
 });
 
-syncAmbientPixels();
+function colorName(color) {
+  return ["紫", "青", "水色", "緑", "黄緑", "黄色", "オレンジ", "赤"][FINAL_COLORS.indexOf(color)] || "色つき";
+}
+
+function wordSolved(w) {
+  return wordCells(w).every(pos => !isAnswerCharacter(pos.ch) || canonicalKana(inputForKey(key(pos.r, pos.c))?.value || "") === pos.ch);
+}
+
+function updateReviewUI() {
+  const solved = words.filter(wordSolved).length;
+  const progress = document.getElementById("progressBtn");
+  progress.textContent = `正解 ${solved} / ${words.length}`;
+  progress.setAttribute("aria-label", `正解${solved}、全${words.length}問。カギ一覧を開く`);
+  const remove = document.getElementById("removeLetterBtn");
+  remove.disabled = finalChallengeOpen ? finalMoveIndex === null : !currentInput()?.value;
+  const status = document.getElementById("answerStatus");
+  const w = activeWord();
+  status.textContent = finalChallengeOpen ? "" : !w ? "" : wordSolved(w) ? "✓ このカギは正解" : wordCells(w).some(pos => { const value = inputForKey(key(pos.r, pos.c))?.value; return value && canonicalKana(value) !== pos.ch; }) ? "! ちがう文字があります" : "";
+}
+
+function renderDirectionSwitch(ids) {
+  const group = document.getElementById("directionSwitch");
+  group.replaceChildren();
+  if (finalChallengeOpen || ids.length < 2) return;
+  ids.forEach(id => {
+    const w = words.find(item => item.id === id);
+    const button = document.createElement("button");
+    button.className = "tool-button";
+    button.textContent = `${dirLabel(w.d)}${w.n}`;
+    button.setAttribute("aria-pressed", String(id === activeWordId));
+    button.onclick = () => { activeWordId = id; selectCell(selectedKey); };
+    group.appendChild(button);
+  });
+}
+
+document.getElementById("fitBtn").onclick = centerBoard;
+document.getElementById("panelToggle").onclick = e => {
+  const expanded = hintPanel.classList.toggle("is-expanded");
+  e.currentTarget.setAttribute("aria-expanded", String(expanded));
+  e.currentTarget.setAttribute("aria-label", expanded ? "カギ欄を小さくする" : "カギ欄を広げる");
+  e.currentTarget.title = e.currentTarget.getAttribute("aria-label");
+  e.currentTarget.textContent = expanded ? "⌄" : "⌃";
+  centerBoard();
+};
+document.getElementById("helpBtn").onclick = () => document.getElementById("helpDialog").showModal();
+document.querySelectorAll("[data-close-dialog]").forEach(button => { button.onclick = () => button.closest("dialog").close(); });
+document.getElementById("replayTutorialBtn").onclick = () => {
+  document.getElementById("helpDialog").close();
+  if (finalChallengeOpen) returnToBoard();
+  const target = firstTutorialCellKey();
+  if (target) { centerBoard(); showTutorialCellStep(target); }
+};
+document.getElementById("progressBtn").onclick = () => {
+  const list = document.getElementById("clueList");
+  list.replaceChildren();
+  [...words].sort((a, b) => Number(wordSolved(a)) - Number(wordSolved(b))).forEach(w => {
+    const button = document.createElement("button");
+    button.className = "tool-button";
+    button.textContent = `${wordSolved(w) ? "✓" : "□"} ${dirLabel(w.d)}${w.n}　${wordSolved(w) ? "正解" : "未正解"}`;
+    button.onclick = () => {
+      document.getElementById("clueDialog").close();
+      if (finalChallengeOpen) returnToBoard();
+      activeWordId = w.id;
+      const pos = wordCells(w)[0];
+      selectCell(key(pos.r, pos.c));
+      hintPanel.scrollTop = 0;
+      centerBoard();
+    };
+    list.appendChild(button);
+  });
+  document.getElementById("clueDialog").showModal();
+};
+document.getElementById("removeLetterBtn").onclick = () => {
+  if (finalChallengeOpen && finalMoveIndex !== null) {
+    finalSelection.splice(finalMoveIndex, 1);
+    finalMoveIndex = null;
+    finalSlotTap = { index: null, time: 0 };
+    renderFinalChallenge();
+  } else if (!finalChallengeOpen) clearSelectedCell();
+};
+
+// Drag letters directly with a finger or pointer and drop them on the destination slot.
+function placeFinalItem(item, targetIndex) {
+  if (!item) return;
+  const next = finalSelection.filter(selected => selected.id !== item.id);
+  const index = Math.max(0, Math.min(Number(targetIndex) || 0, next.length));
+  next.splice(index, 0, item);
+  finalSelection = next.slice(0, FINAL_SEQUENCE.length);
+  finalMoveIndex = null;
+  finalSlotTap = { index: null, time: 0 };
+  renderFinalChallenge();
+}
+
+let letterDrag = null;
+let suppressLetterClick = false;
+
+function letterDropTarget(source, x, y) {
+  const hit = document.elementFromPoint(x, y);
+  if (!hit) return null;
+  if (source.matches(".active-letter, .kana-key")) return hit.closest(".active-letter");
+  if (source.matches(".final-slot, .final-chip")) return hit.closest(".final-slot");
+  return null;
+}
+
+function createLetterDragGhost(source, x, y) {
+  const rect = source.getBoundingClientRect();
+  const style = getComputedStyle(source);
+  const ghost = document.createElement("div");
+  ghost.className = "letter-drag-ghost";
+  ghost.textContent = source.textContent;
+  ghost.style.width = `${rect.width}px`;
+  ghost.style.height = `${rect.height}px`;
+  ghost.style.borderColor = style.borderColor;
+  ghost.style.backgroundColor = style.backgroundColor;
+  ghost.style.color = style.color;
+  ghost.style.left = `${x}px`;
+  ghost.style.top = `${y}px`;
+  document.body.appendChild(ghost);
+  return ghost;
+}
+
+function updateLetterDragTarget(drag, x, y) {
+  const target = letterDropTarget(drag.source, x, y);
+  if (drag.target !== target) {
+    drag.target?.classList.remove("is-drop-target");
+    drag.target = target;
+    if (target && target !== drag.source) target.classList.add("is-drop-target");
+  }
+}
+
+function cleanupLetterDrag(drag) {
+  drag?.source.classList.remove("is-held", "is-drag-source");
+  drag?.target?.classList.remove("is-drop-target");
+  drag?.ghost?.remove();
+  if (drag && hintPanel.hasPointerCapture?.(drag.pointerId)) {
+    hintPanel.releasePointerCapture(drag.pointerId);
+  }
+  letterDrag = null;
+}
+
+hintPanel.addEventListener("pointerdown", e => {
+  if (e.button !== undefined && e.button !== 0) return;
+  const source = e.target.closest(".active-letter, .final-slot, .kana-key, .final-chip");
+  if (!source || source.classList.contains("is-empty")) return;
+  letterDrag = {
+    source,
+    pointerId: e.pointerId,
+    startX: e.clientX,
+    startY: e.clientY,
+    dragging: false,
+    ghost: null,
+    target: null
+  };
+  hintPanel.setPointerCapture?.(e.pointerId);
+});
+
+hintPanel.addEventListener("pointermove", e => {
+  const drag = letterDrag;
+  if (!drag || drag.pointerId !== e.pointerId) return;
+  const distance = Math.hypot(e.clientX - drag.startX, e.clientY - drag.startY);
+  if (!drag.dragging && distance < 6) return;
+  if (!drag.dragging) {
+    drag.dragging = true;
+    drag.source.classList.add("is-held", "is-drag-source");
+    drag.ghost = createLetterDragGhost(drag.source, e.clientX, e.clientY);
+  }
+  e.preventDefault();
+  drag.ghost.style.left = `${e.clientX}px`;
+  drag.ghost.style.top = `${e.clientY}px`;
+  updateLetterDragTarget(drag, e.clientX, e.clientY);
+});
+
+document.addEventListener("pointerup", e => {
+  const drag = letterDrag;
+  if (!drag || drag.pointerId !== e.pointerId) return;
+  if (!drag.dragging) {
+    const now = Date.now();
+    const slotKey = drag.source.dataset.slotKey;
+    const finalIndexValue = drag.source.dataset.finalIndex;
+    const clearActive = slotKey && activeSlotTap.key === slotKey && now - activeSlotTap.time < 700;
+    const clearFinal = finalIndexValue !== undefined
+      && finalSlotTap.index === Number(finalIndexValue)
+      && now - finalSlotTap.time < 700;
+    if (slotKey && !clearActive) activeSlotTap = { key: slotKey, time: now };
+    if (finalIndexValue !== undefined && !clearFinal) finalSlotTap = { index: Number(finalIndexValue), time: now };
+    cleanupLetterDrag(drag);
+    if (clearActive) {
+      suppressLetterClick = true;
+      setTimeout(() => { suppressLetterClick = false; }, 0);
+      activeSlotTap = { key: null, time: 0 };
+      clearInputByKey(slotKey);
+    } else if (clearFinal) {
+      suppressLetterClick = true;
+      setTimeout(() => { suppressLetterClick = false; }, 0);
+      finalSelection.splice(Number(finalIndexValue), 1);
+      finalMoveIndex = null;
+      finalSlotTap = { index: null, time: 0 };
+      renderFinalChallenge();
+    }
+    return;
+  }
+
+  updateLetterDragTarget(drag, e.clientX, e.clientY);
+  const source = drag.source;
+  const target = drag.target;
+  cleanupLetterDrag(drag);
+  suppressLetterClick = true;
+  setTimeout(() => { suppressLetterClick = false; }, 0);
+  if (!target || target === source) return;
+
+  if (source.dataset.slotKey && target.dataset.slotKey) {
+    moveActiveLetter(source.dataset.slotKey, target.dataset.slotKey);
+  } else if (source.dataset.kanaValue && target.dataset.slotKey) {
+    inputChoiceAtKey(source.dataset.kanaValue, target.dataset.slotKey);
+  } else if (source.dataset.finalIndex !== undefined && target.dataset.finalIndex !== undefined) {
+    placeFinalItem(finalSelection[Number(source.dataset.finalIndex)], Number(target.dataset.finalIndex));
+  } else if (source.dataset.finalItemId && target.dataset.finalIndex !== undefined) {
+    const item = keypointLetters().find(letter => letter.id === Number(source.dataset.finalItemId));
+    placeFinalItem(item, Number(target.dataset.finalIndex));
+  }
+});
+
+hintPanel.addEventListener("pointercancel", e => {
+  if (letterDrag?.pointerId === e.pointerId) cleanupLetterDrag(letterDrag);
+});
+hintPanel.addEventListener("click", e => {
+  if (!suppressLetterClick) return;
+  e.preventDefault();
+  e.stopImmediatePropagation();
+}, true);
+
+let modalReturnFocus = null;
+const modalObserver = new MutationObserver(() => {
+  const modal = document.querySelector(".completion-modal:not(.hidden)");
+  if (modal) {
+    if (!modal.contains(document.activeElement)) { modalReturnFocus = document.activeElement; modal.querySelector("button")?.focus(); }
+  } else if (modalReturnFocus) { modalReturnFocus.focus(); modalReturnFocus = null; }
+});
+document.querySelectorAll(".completion-modal").forEach(modal => modalObserver.observe(modal, { attributes: true, attributeFilter: ["class"] }));
+document.addEventListener("keydown", e => {
+  const modal = document.querySelector(".completion-modal:not(.hidden)");
+  if (!modal || gameScreen.classList.contains("hidden")) return;
+  if (e.key === "Tab") { e.preventDefault(); modal.querySelector("button")?.focus(); }
+  if (e.key === "Escape") { e.preventDefault(); modal.querySelector("button")?.click(); }
+});
+new ResizeObserver(() => { if (!gameScreen.classList.contains("hidden")) applyTransform(); }).observe(hintPanel);
+
 createCells();
+document.querySelector('.cell input:not(.fixed-symbol)')?.setAttribute("tabindex", "0");
 renderKeyboard();
 checkCompletion({ announce: true });
 </script>
