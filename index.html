@@ -189,6 +189,7 @@
   }
   .viewport { position: absolute; inset: 0; z-index: 1; overflow: hidden; touch-action: none; }
   .stage { position: absolute; left: 50%; top: 50%; transform-origin: 0 0; will-change: transform; }
+  .stage.is-focusing { transition: transform .32s ease-out; }
   .board {
     position: relative;
     width: calc(var(--cell) * 18);
@@ -253,6 +254,12 @@
   }
   .cell.correct input { color: #176fb3; }
   .cell.wrong input { color: #b01414; }
+  .cell input.is-drag-source { opacity: .28; }
+  .cell input.is-drop-target {
+    background: rgba(9, 167, 223, .32);
+    outline: 5px solid #09a7df;
+    outline-offset: -5px;
+  }
   .num {
     position: absolute;
     left: 2px;
@@ -436,10 +443,13 @@
     margin: 0;
     padding: 16px 22px;
     overflow: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
     min-height: 0;
     max-height: min(44dvh, 250px);
     box-shadow: 0 10px 26px rgba(0, 0, 0, .22);
   }
+  .hint-panel::-webkit-scrollbar { display: none; }
   .hint-panel.has-final-gradient {
     border: 8px solid transparent;
     background:
@@ -451,6 +461,12 @@
     grid-template-columns: 1fr auto;
     gap: 10px;
     align-items: start;
+  }
+  .hint-title-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
   }
   .hint-head-actions {
     display: flex;
@@ -464,7 +480,7 @@
     font-size: 16px;
     white-space: nowrap;
   }
-  .hint-title { font-size: 28px; margin: 0 0 6px; font-weight: 800; }
+  .hint-title { font-size: 28px; margin: 0; font-weight: 800; }
   .hint-body { font-size: 18px; line-height: 1.55; margin: 0; color: var(--ink); }
   .hint-body small { display: block; margin-top: 6px; font-size: 13px; opacity: .8; }
   .kana-toggle-btn {
@@ -506,49 +522,10 @@
     padding: 12px 0 0;
     background: transparent;
   }
-  .active-answer {
-    grid-column: 1 / -1;
-    min-height: 42px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    align-items: center;
-    padding: 5px 8px;
-    background: #fffdf8;
-    border: 2px solid #222;
-    border-radius: 8px;
-  }
-  .active-answer.is-empty::before {
-    content: "選んだ文字がここに並びます";
-    color: var(--muted);
-    font-size: 14px;
-    font-weight: 700;
-  }
-  .active-letter {
-    min-width: 34px;
-    height: 34px;
-    border: 2px solid #222;
-    border-radius: 8px;
-    background: #fffdf8;
-    color: var(--ink);
-    font-size: 19px;
-    font-weight: 900;
-  }
-  .active-letter.is-empty {
-    color: var(--muted);
-    border-style: dashed;
-    background: #f6f1e8;
-  }
-  .active-letter.is-current {
-    background: #09a7df;
-    color: #fff;
-  }
-  .active-letter.is-held,
   .final-slot.is-held {
     outline: 4px dashed #f2a900;
     outline-offset: 2px;
   }
-  .active-letter,
   .final-slot,
   .kana-key,
   .final-chip {
@@ -556,13 +533,11 @@
     user-select: none;
     -webkit-user-select: none;
   }
-  .active-letter.is-drag-source,
   .final-slot.is-drag-source,
   .kana-key.is-drag-source,
   .final-chip.is-drag-source {
     opacity: .28;
   }
-  .active-letter.is-drop-target,
   .final-slot.is-drop-target {
     outline: 4px solid #09a7df;
     outline-offset: 2px;
@@ -894,39 +869,37 @@
     .final-answer { min-height: 40px; }
     .completion-card h2 { font-size: 24px; }
   }
-  .board-tools { position: fixed; top: max(8px, env(safe-area-inset-top)); right: 8px; z-index: 12; display: flex; gap: 6px; align-items: center; }
   .tool-button { min-width: 44px; min-height: 44px; border: 2px solid var(--blue-border); border-radius: 8px; background: #f7fdff; color: #174e68; font-weight: 700; padding: 6px 10px; }
-  .progress-button { font-size: 13px; }
   button:focus-visible, input:focus-visible { outline: 3px solid #174e68; outline-offset: 3px; }
   .hint-head { position: sticky; top: -12px; z-index: 3; background: var(--hint); padding: 8px 0; }
   .hint-head-actions { flex-wrap: wrap; justify-content: flex-end; }
   .hint-head-actions button { min-height: 44px; height: auto; font-size: 14px; }
   .hint-panel { scroll-padding-top: 110px; }
-  .hint-panel.is-expanded { height: 68dvh; max-height: 68dvh; }
-  .direction-switch { display: flex; gap: 6px; margin: 6px 0; }
+  .direction-switch { display: flex; flex: 0 0 auto; }
   .direction-switch:empty { display: none; }
-  .direction-switch button[aria-pressed="true"] { background: #176586; color: white; }
+  .direction-toggle {
+    width: 44px;
+    height: 44px;
+    border: 2px solid var(--blue-border);
+    border-radius: 8px;
+    background: #f7fdff;
+    color: #174e68;
+    padding: 0;
+    font-size: 28px;
+    font-weight: 900;
+    line-height: 1;
+    white-space: nowrap;
+  }
+  .direction-toggle:active { background: #dff4fb; }
   .answer-tools { display: flex; gap: 8px; align-items: center; margin-top: 8px; }
   .answer-status { font-size: 14px; }
-  .active-letter { min-width: 44px; height: 44px; touch-action: pan-y; }
   .kana-key, .final-chip { min-width: 44px; min-height: 44px; }
-  .active-letter[data-state="wrong"] { border-style: dashed; border-color: #b42318; }
-  .active-letter[data-state="correct"] { border-color: #176586; }
   .final-slot { min-height: 44px; text-shadow: 0 0 1px #333; }
   .final-chip { color: var(--key-color); text-shadow: 0 0 1px #333; }
   .completion-card { max-height: 85dvh; overflow: auto; }
-  dialog.ui-dialog { width: min(92vw, 520px); max-height: 82dvh; overflow: auto; border: 2px solid var(--blue-border); border-radius: 8px; padding: 20px; color: var(--ink); background: #f7fdff; }
-  dialog::backdrop { background: #152d4266; }
-  .dialog-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
-  .dialog-head h2 { margin: 0; font-size: 22px; }
-  .guide-list { padding-left: 22px; line-height: 1.8; }
-  .clue-list { display: grid; gap: 8px; margin-top: 16px; }
-  .clue-list button { text-align: left; }
   @media (min-width: 1000px) {
     .main-area { right: 430px; }
-    .hint-panel, .hint-panel.is-expanded { left: auto; right: 12px; top: 64px; bottom: 12px; width: 406px; height: auto; max-height: none; padding: 14px; }
-    .board-tools { right: 12px; }
-    #panelToggle { display: none; }
+    .hint-panel { left: auto; right: 12px; top: 64px; bottom: 12px; width: 406px; height: auto; max-height: none; padding: 14px; }
     .hint-title { font-size: 23px; }
     .hint-body { font-size: 17px; }
   }
@@ -941,6 +914,7 @@
   }
   @media (prefers-reduced-motion: reduce) {
     .tutorial-hand, .tutorial-pulse { animation: none !important; }
+    .stage.is-focusing { transition: none; }
   }
 </style>
 </head>
@@ -972,11 +946,6 @@
 
   <section id="gameScreen" class="screen game-screen hidden">
     <div class="app-frame">
-      <div class="board-tools" aria-label="盤面の操作">
-        <button id="progressBtn" class="tool-button progress-button" type="button" title="カギ一覧を開く">正解 0</button>
-        <button id="fitBtn" class="tool-button" type="button" aria-label="盤面全体を表示" title="盤面全体を表示">⛶</button>
-        <button id="helpBtn" class="tool-button" type="button" aria-label="操作ガイド" title="操作ガイド">?</button>
-      </div>
       <header class="topbar">
         <nav class="tabs" aria-label="表示切り替え">
           <button id="answerTab" class="tab" aria-selected="true">回答シート</button>
@@ -1000,18 +969,18 @@
       </section>
       <aside class="hint-panel">
         <div class="hint-head">
-          <h2 id="hintTitle" class="hint-title">カギ</h2>
+          <div class="hint-title-row">
+            <h2 id="hintTitle" class="hint-title">カギ</h2>
+            <div id="directionSwitch" class="direction-switch" aria-label="交差するカギへの切替"></div>
+          </div>
           <div class="hint-head-actions">
             <button id="finalBackBtn" class="clue-map-btn hidden" type="button">もどる</button>
             <button id="resumeFinalBtn" class="clue-map-btn hidden" type="button">もどる</button>
             <button id="kanaToggleBtn" class="kana-toggle-btn" type="button" aria-pressed="false" aria-label="問題文をひらがなにする">ひらがな</button>
-            <button id="panelToggle" class="tool-button" type="button" aria-expanded="false" aria-label="カギ欄を広げる" title="カギ欄を広げる">⌃</button>
           </div>
         </div>
-        <div id="directionSwitch" class="direction-switch" aria-label="カギの切替"></div>
-        <p id="hintBody" class="hint-body">マスを選ぶと、ここにカギが表示されます。</p>
+        <p id="hintBody" class="hint-body"></p>
         <section id="kanaKeyboard" class="kana-keyboard is-empty" aria-label="文字入力">
-          <div id="activeAnswer" class="active-answer is-empty"></div>
           <div id="kanaKeys" class="kana-keys"></div>
           <div class="keyboard-actions">
             <button id="goToMapBtn" class="keyboard-action clue-map-btn hidden" type="button" aria-label="Googleマップでこの場所への徒歩経路を開く">この場所へ行く</button>
@@ -1026,25 +995,9 @@
           <div id="finalResult" class="final-result"></div>
         </section>
         <div class="answer-tools">
-          <button id="removeLetterBtn" class="tool-button" type="button" disabled aria-label="選択した文字を取り消す" title="選択した文字を取り消す">⌫</button>
           <span id="answerStatus" class="answer-status" role="status" aria-live="polite"></span>
         </div>
       </aside>
-      <dialog id="helpDialog" class="ui-dialog" aria-labelledby="helpTitle">
-        <div class="dialog-head"><h2 id="helpTitle">操作ガイド</h2><button class="tool-button" data-close-dialog aria-label="閉じる">×</button></div>
-        <ol class="guide-list">
-          <li>盤面のマス、または正解数のボタンからカギを選びます。</li>
-          <li>候補の文字を押すと入力できます。青い文字は正解です。</li>
-          <li>入力欄の文字を選び、移動先を押すと入れ替わります。ドラッグでも移動できます。</li>
-          <li>選んだ文字は⌫で取り消せます。入力欄の文字を2回続けて押しても取り消せます。</li>
-          <li>盤面はドラッグで移動、ピンチやホイールで拡大縮小。⛶で全体に戻ります。</li>
-        </ol>
-        <button id="replayTutorialBtn" class="tool-button">指の案内をもう一度見る</button>
-      </dialog>
-      <dialog id="clueDialog" class="ui-dialog" aria-labelledby="clueListTitle">
-        <div class="dialog-head"><h2 id="clueListTitle">カギ一覧</h2><button class="tool-button" data-close-dialog aria-label="閉じる">×</button></div>
-        <div id="clueList" class="clue-list"></div>
-      </dialog>
       <section id="completionModal" class="completion-modal hidden" role="dialog" aria-modal="true" aria-labelledby="completionTitle">
         <div class="completion-card">
           <h2 id="completionTitle">全問正解！</h2>
@@ -1235,7 +1188,6 @@ const mapBackBtn = document.getElementById("mapBackBtn");
 const mapDestinationPin = document.getElementById("mapDestinationPin");
 const hintPanel = document.querySelector(".hint-panel");
 const kanaKeyboard = document.getElementById("kanaKeyboard");
-const activeAnswer = document.getElementById("activeAnswer");
 const kanaKeys = document.getElementById("kanaKeys");
 const finalChallenge = document.getElementById("finalChallenge");
 const finalAnswer = document.getElementById("finalAnswer");
@@ -1270,6 +1222,7 @@ let tapCycle = { key: null, index: 0 };
 let lastBlankTap = 0;
 let blankLongPress = null;
 let blankPressStart = null;
+let boardFocusTimer = 0;
 let puzzleCompleted = false;
 let finalChallengeOpen = false;
 let finalSelection = [];
@@ -1335,6 +1288,11 @@ function isAnswerCharacter(ch) {
 
 function activeWord() {
   return words.find(word => word.id === activeWordId);
+}
+
+function activeWordContainsKey(k) {
+  const word = activeWord();
+  return Boolean(word && wordCells(word).some(pos => isAnswerCharacter(pos.ch) && key(pos.r, pos.c) === k));
 }
 
 function currentInput() {
@@ -1487,12 +1445,12 @@ function selectCell(k, fromTap = false) {
   updateHint(ids);
   updateMapDestination();
   renderKeyboard();
+  requestAnimationFrame(focusActiveWord);
 }
 
 function renderKeyboard() {
   updateReviewUI();
   const choices = activeChoices();
-  renderActiveAnswer();
   kanaKeys.replaceChildren();
   kanaKeyboard.classList.toggle("hidden", currentMode !== "answer" || finalChallengeOpen);
   kanaKeyboard.classList.toggle("is-empty", choices.length === 0 || currentMode !== "answer");
@@ -1514,6 +1472,16 @@ function inputForKey(k) {
   return document.querySelector(`[data-key="${k}"] input`);
 }
 
+function isAnswerCellLocked(k) {
+  const data = cellMap.get(k);
+  const input = inputForKey(k);
+  if (!data || !input || canonicalKana(input.value || "") !== data.answer) return false;
+  return data.words.some(id => {
+    const word = words.find(item => item.id === id);
+    return word && wordSolved(word);
+  });
+}
+
 function updateInputState(input) {
   if (!input) return;
   validateCell(input);
@@ -1523,6 +1491,7 @@ function moveActiveLetter(fromKey, toKey) {
   const from = inputForKey(fromKey);
   const to = inputForKey(toKey);
   if (!from || !to || from === to || !from.value) return;
+  if (isAnswerCellLocked(fromKey) || isAnswerCellLocked(toKey)) return;
   const fromAnswer = from.closest(".cell")?.dataset.answer || "";
   const toAnswer = to.closest(".cell")?.dataset.answer || "";
   if (!isAnswerCharacter(fromAnswer) || !isAnswerCharacter(toAnswer)) return;
@@ -1544,6 +1513,7 @@ function moveActiveLetter(fromKey, toKey) {
 function clearInputByKey(k) {
   const input = inputForKey(k);
   if (!input) return;
+  if (isAnswerCellLocked(k)) return;
   const answer = input.closest(".cell")?.dataset.answer || "";
   if (!isAnswerCharacter(answer) || !input.value) return;
   input.value = "";
@@ -1557,35 +1527,10 @@ function clearInputByKey(k) {
   renderKeyboard();
 }
 
-function renderActiveAnswer() {
-  activeAnswer.replaceChildren();
-  const w = activeWord();
-  const cells = w ? wordCells(w).filter(pos => isAnswerCharacter(pos.ch)) : [];
-  activeAnswer.classList.toggle("is-empty", cells.length === 0);
-  cells.forEach(pos => {
-    const k = key(pos.r, pos.c);
-    const input = document.querySelector(`[data-key="${k}"] input`);
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = "active-letter";
-    button.classList.toggle("is-empty", !input?.value);
-    button.classList.toggle("is-current", k === selectedKey);
-    button.textContent = input?.value || "□";
-    button.dataset.slotKey = k;
-    button.dataset.state = !input?.value ? "empty" : canonicalKana(input.value) === pos.ch ? "correct" : "wrong";
-    button.setAttribute("aria-label", input?.value ? `${input.value}を移動` : `${pos.r}行${pos.c}列へ移動`);
-    button.addEventListener("click", e => {
-      e.preventDefault();
-      selectCell(k);
-      document.querySelector(`[data-key="${k}"] input`)?.focus();
-    });
-    activeAnswer.appendChild(button);
-  });
-}
-
 function inputChoice(ch) {
   const input = currentInput();
   if (!input || !activeChoices().includes(ch)) return;
+  if (isAnswerCellLocked(selectedKey)) return;
   if (!isAnswerCharacter(input.closest(".cell")?.dataset.answer || "")) return;
   input.value = ch;
   activeMoveKey = null;
@@ -1599,6 +1544,7 @@ function inputChoice(ch) {
 function inputChoiceAtKey(ch, k) {
   const input = inputForKey(k);
   if (!input || !activeChoices().includes(ch)) return;
+  if (isAnswerCellLocked(k)) return;
   if (!isAnswerCharacter(input.closest(".cell")?.dataset.answer || "")) return;
   input.value = ch;
   activeMoveKey = null;
@@ -1615,6 +1561,7 @@ function inputChoiceAtKey(ch, k) {
 function clearSelectedCell() {
   const input = currentInput();
   if (!input) return;
+  if (isAnswerCellLocked(selectedKey)) return;
   if (!isAnswerCharacter(input.closest(".cell")?.dataset.answer || "")) return;
   input.value = "";
   input.closest(".cell")?.classList.remove("correct", "wrong");
@@ -1745,7 +1692,7 @@ function returnToBoard() {
     selectCell(selectedKey);
   } else {
     hintTitle.textContent = "カギ";
-    hintBody.textContent = "マスを選ぶと、ここにカギが表示されます。";
+    hintBody.textContent = "";
     renderKeyboard();
   }
   updateResumeFinalButton();
@@ -1869,13 +1816,13 @@ function updateHint(ids) {
   const items = ids.map(id => words.find(w => w.id === id)).filter(Boolean);
   if (!items.length) {
     hintTitle.textContent = "カギ";
-    hintBody.textContent = "マスを選ぶと、ここにカギが表示されます。";
+    hintBody.textContent = "";
     goToMapBtn.classList.add("hidden");
     updateResumeFinalButton();
     return;
   }
   const main = words.find(w => w.id === activeWordId) || items[0];
-  hintTitle.textContent = `${dirLabel(main.d)}${main.n} のカギ`;
+  hintTitle.textContent = `${dirLabel(main.d)}${main.n}のカギ`;
   const switchGuide = clueReadingMode
     ? "おなじマスをもういちどタップすると、こうさするカギにきりかわります。"
     : "同じマスをもう一度タップすると、交差するカギに切り替わります。";
@@ -1919,9 +1866,10 @@ function moveNext() {
   if (!w || !selectedKey) return false;
   const cells = wordCells(w).filter(p => isAnswerCharacter(p.ch)).map(p => key(p.r, p.c));
   const i = cells.indexOf(selectedKey);
-  if (i >= 0 && i < cells.length - 1) {
-    const next = document.querySelector(`[data-key="${cells[i + 1]}"] input`);
-    selectCell(cells[i + 1]);
+  const nextKey = cells.slice(i + 1).find(k => !isAnswerCellLocked(k));
+  if (i >= 0 && nextKey) {
+    const next = document.querySelector(`[data-key="${nextKey}"] input`);
+    selectCell(nextKey);
     next?.focus();
     return true;
   }
@@ -2108,6 +2056,33 @@ function centerBoard() {
   applyTransform();
 }
 
+function focusActiveWord() {
+  if (currentMode !== "answer" || finalChallengeOpen) return;
+  const word = activeWord();
+  const cells = word ? wordCells(word).filter(pos => isAnswerCharacter(pos.ch)) : [];
+  if (!cells.length) return;
+  const bounds = boardVisibleBounds();
+  const availableWidth = Math.max(80, bounds.right - bounds.left - 28);
+  const availableHeight = Math.max(80, bounds.bottom - bounds.top - 28);
+  const cell = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--cell"));
+  const minColumn = Math.min(...cells.map(pos => pos.c));
+  const maxColumn = Math.max(...cells.map(pos => pos.c));
+  const minRow = Math.min(...cells.map(pos => pos.r));
+  const maxRow = Math.max(...cells.map(pos => pos.r));
+  const wordWidth = (maxColumn - minColumn + 1) * cell;
+  const wordHeight = (maxRow - minRow + 1) * cell;
+  const minScale = Math.max(.1, boardFitScale() * .9);
+  transform.scale = Math.max(minScale, Math.min(2.8, availableWidth / wordWidth, availableHeight / wordHeight));
+  const wordCenterX = ((minColumn - 1) + (maxColumn - minColumn + 1) / 2) * cell;
+  const wordCenterY = ((minRow - 1) + (maxRow - minRow + 1) / 2) * cell;
+  transform.x = (bounds.left + bounds.right) / 2 - wordCenterX * transform.scale;
+  transform.y = (bounds.top + bounds.bottom) / 2 - wordCenterY * transform.scale;
+  stage.classList.add("is-focusing");
+  clearTimeout(boardFocusTimer);
+  boardFocusTimer = setTimeout(() => stage.classList.remove("is-focusing"), 340);
+  applyTransform();
+}
+
 function centerMap() {
   const rect = mapView.getBoundingClientRect();
   const canvas = mapStage.querySelector(".map-canvas");
@@ -2193,6 +2168,8 @@ function maybeResetFromBlankLongPress() {
 
 viewport.addEventListener("pointerdown", e => {
   if (currentMode !== "answer") return;
+  stage.classList.remove("is-focusing");
+  if (beginBoardLetterDrag(e)) return;
   pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
   viewport.setPointerCapture(e.pointerId);
   if (pointers.size === 1) dragStart = { x: e.clientX, y: e.clientY, tx: transform.x, ty: transform.y };
@@ -2459,7 +2436,7 @@ function setMode(mode) {
     }
   } else {
     hintTitle.textContent = "カギ";
-    hintBody.textContent = "マスを選ぶと、ここにカギが表示されます。";
+    hintBody.textContent = "";
     goToMapBtn.classList.add("hidden");
     updateResumeFinalButton();
     renderKeyboard();
@@ -2496,12 +2473,6 @@ function wordSolved(w) {
 }
 
 function updateReviewUI() {
-  const solved = words.filter(wordSolved).length;
-  const progress = document.getElementById("progressBtn");
-  progress.textContent = `正解 ${solved} / ${words.length}`;
-  progress.setAttribute("aria-label", `正解${solved}、全${words.length}問。カギ一覧を開く`);
-  const remove = document.getElementById("removeLetterBtn");
-  remove.disabled = finalChallengeOpen ? finalMoveIndex === null : !currentInput()?.value;
   const status = document.getElementById("answerStatus");
   const w = activeWord();
   status.textContent = finalChallengeOpen ? "" : !w ? "" : wordSolved(w) ? "✓ このカギは正解" : wordCells(w).some(pos => { const value = inputForKey(key(pos.r, pos.c))?.value; return value && canonicalKana(value) !== pos.ch; }) ? "! ちがう文字があります" : "";
@@ -2511,62 +2482,20 @@ function renderDirectionSwitch(ids) {
   const group = document.getElementById("directionSwitch");
   group.replaceChildren();
   if (finalChallengeOpen || ids.length < 2) return;
-  ids.forEach(id => {
-    const w = words.find(item => item.id === id);
-    const button = document.createElement("button");
-    button.className = "tool-button";
-    button.textContent = `${dirLabel(w.d)}${w.n}`;
-    button.setAttribute("aria-pressed", String(id === activeWordId));
-    button.onclick = () => { activeWordId = id; selectCell(selectedKey); };
-    group.appendChild(button);
-  });
+  const otherId = ids.find(id => id !== activeWordId) || ids[0];
+  const other = words.find(item => item.id === otherId);
+  if (!other) return;
+  const button = document.createElement("button");
+  const label = `${dirLabel(other.d)}${other.n}のカギに切り替える`;
+  const targetArrow = other.d === "down" ? "↓" : "→";
+  button.type = "button";
+  button.className = "direction-toggle";
+  button.innerHTML = `<span aria-hidden="true">${targetArrow}</span>`;
+  button.setAttribute("aria-label", label);
+  button.title = label;
+  button.onclick = () => { activeWordId = other.id; selectCell(selectedKey); };
+  group.appendChild(button);
 }
-
-document.getElementById("fitBtn").onclick = centerBoard;
-document.getElementById("panelToggle").onclick = e => {
-  const expanded = hintPanel.classList.toggle("is-expanded");
-  e.currentTarget.setAttribute("aria-expanded", String(expanded));
-  e.currentTarget.setAttribute("aria-label", expanded ? "カギ欄を小さくする" : "カギ欄を広げる");
-  e.currentTarget.title = e.currentTarget.getAttribute("aria-label");
-  e.currentTarget.textContent = expanded ? "⌄" : "⌃";
-  centerBoard();
-};
-document.getElementById("helpBtn").onclick = () => document.getElementById("helpDialog").showModal();
-document.querySelectorAll("[data-close-dialog]").forEach(button => { button.onclick = () => button.closest("dialog").close(); });
-document.getElementById("replayTutorialBtn").onclick = () => {
-  document.getElementById("helpDialog").close();
-  if (finalChallengeOpen) returnToBoard();
-  const target = firstTutorialCellKey();
-  if (target) { centerBoard(); showTutorialCellStep(target); }
-};
-document.getElementById("progressBtn").onclick = () => {
-  const list = document.getElementById("clueList");
-  list.replaceChildren();
-  [...words].sort((a, b) => Number(wordSolved(a)) - Number(wordSolved(b))).forEach(w => {
-    const button = document.createElement("button");
-    button.className = "tool-button";
-    button.textContent = `${wordSolved(w) ? "✓" : "□"} ${dirLabel(w.d)}${w.n}　${wordSolved(w) ? "正解" : "未正解"}`;
-    button.onclick = () => {
-      document.getElementById("clueDialog").close();
-      if (finalChallengeOpen) returnToBoard();
-      activeWordId = w.id;
-      const pos = wordCells(w)[0];
-      selectCell(key(pos.r, pos.c));
-      hintPanel.scrollTop = 0;
-      centerBoard();
-    };
-    list.appendChild(button);
-  });
-  document.getElementById("clueDialog").showModal();
-};
-document.getElementById("removeLetterBtn").onclick = () => {
-  if (finalChallengeOpen && finalMoveIndex !== null) {
-    finalSelection.splice(finalMoveIndex, 1);
-    finalMoveIndex = null;
-    finalSlotTap = { index: null, time: 0 };
-    renderFinalChallenge();
-  } else if (!finalChallengeOpen) clearSelectedCell();
-};
 
 // Drag letters directly with a finger or pointer and drop them on the destination slot.
 function placeFinalItem(item, targetIndex) {
@@ -2586,7 +2515,12 @@ let suppressLetterClick = false;
 function letterDropTarget(source, x, y) {
   const hit = document.elementFromPoint(x, y);
   if (!hit) return null;
-  if (source.matches(".active-letter, .kana-key")) return hit.closest(".active-letter");
+  if (source.matches(".kana-key, .cell input")) {
+    const target = hit.closest(".cell")?.querySelector("input");
+    if (!target || target.classList.contains("fixed-symbol")) return null;
+    if (!activeWordContainsKey(target.dataset.key) || isAnswerCellLocked(target.dataset.key)) return null;
+    return target;
+  }
   if (source.matches(".final-slot, .final-chip")) return hit.closest(".final-slot");
   return null;
 }
@@ -2596,11 +2530,11 @@ function createLetterDragGhost(source, x, y) {
   const style = getComputedStyle(source);
   const ghost = document.createElement("div");
   ghost.className = "letter-drag-ghost";
-  ghost.textContent = source.textContent;
+  ghost.textContent = source.value || source.textContent;
   ghost.style.width = `${rect.width}px`;
   ghost.style.height = `${rect.height}px`;
   ghost.style.borderColor = style.borderColor;
-  ghost.style.backgroundColor = style.backgroundColor;
+  ghost.style.backgroundColor = source.matches(".cell input") ? "#fffdf8" : style.backgroundColor;
   ghost.style.color = style.color;
   ghost.style.left = `${x}px`;
   ghost.style.top = `${y}px`;
@@ -2621,18 +2555,16 @@ function cleanupLetterDrag(drag) {
   drag?.source.classList.remove("is-held", "is-drag-source");
   drag?.target?.classList.remove("is-drop-target");
   drag?.ghost?.remove();
-  if (drag && hintPanel.hasPointerCapture?.(drag.pointerId)) {
-    hintPanel.releasePointerCapture(drag.pointerId);
+  if (drag?.captureElement?.hasPointerCapture?.(drag.pointerId)) {
+    drag.captureElement.releasePointerCapture(drag.pointerId);
   }
   letterDrag = null;
 }
 
-hintPanel.addEventListener("pointerdown", e => {
-  if (e.button !== undefined && e.button !== 0) return;
-  const source = e.target.closest(".active-letter, .final-slot, .kana-key, .final-chip");
-  if (!source || source.classList.contains("is-empty")) return;
+function startLetterDrag(source, e, captureElement) {
   letterDrag = {
     source,
+    captureElement,
     pointerId: e.pointerId,
     startX: e.clientX,
     startY: e.clientY,
@@ -2640,10 +2572,26 @@ hintPanel.addEventListener("pointerdown", e => {
     ghost: null,
     target: null
   };
-  hintPanel.setPointerCapture?.(e.pointerId);
+  try { captureElement.setPointerCapture?.(e.pointerId); } catch (_) {}
+}
+
+function beginBoardLetterDrag(e) {
+  if (e.button !== undefined && e.button !== 0) return false;
+  const source = e.target.closest(".cell input");
+  if (!source || source.classList.contains("fixed-symbol") || !source.value) return false;
+  if (!activeWordContainsKey(source.dataset.key) || isAnswerCellLocked(source.dataset.key)) return false;
+  startLetterDrag(source, e, viewport);
+  return true;
+}
+
+hintPanel.addEventListener("pointerdown", e => {
+  if (e.button !== undefined && e.button !== 0) return;
+  const source = e.target.closest(".final-slot, .kana-key, .final-chip");
+  if (!source || source.classList.contains("is-empty")) return;
+  startLetterDrag(source, e, hintPanel);
 });
 
-hintPanel.addEventListener("pointermove", e => {
+document.addEventListener("pointermove", e => {
   const drag = letterDrag;
   if (!drag || drag.pointerId !== e.pointerId) return;
   const distance = Math.hypot(e.clientX - drag.startX, e.clientY - drag.startY);
@@ -2664,7 +2612,7 @@ document.addEventListener("pointerup", e => {
   if (!drag || drag.pointerId !== e.pointerId) return;
   if (!drag.dragging) {
     const now = Date.now();
-    const slotKey = drag.source.dataset.slotKey;
+    const slotKey = drag.source.matches(".cell input") ? drag.source.dataset.key : null;
     const finalIndexValue = drag.source.dataset.finalIndex;
     const clearActive = slotKey && activeSlotTap.key === slotKey && now - activeSlotTap.time < 700;
     const clearFinal = finalIndexValue !== undefined
@@ -2697,10 +2645,10 @@ document.addEventListener("pointerup", e => {
   setTimeout(() => { suppressLetterClick = false; }, 0);
   if (!target || target === source) return;
 
-  if (source.dataset.slotKey && target.dataset.slotKey) {
-    moveActiveLetter(source.dataset.slotKey, target.dataset.slotKey);
-  } else if (source.dataset.kanaValue && target.dataset.slotKey) {
-    inputChoiceAtKey(source.dataset.kanaValue, target.dataset.slotKey);
+  if (source.matches(".cell input") && target.matches(".cell input")) {
+    moveActiveLetter(source.dataset.key, target.dataset.key);
+  } else if (source.dataset.kanaValue && target.matches(".cell input")) {
+    inputChoiceAtKey(source.dataset.kanaValue, target.dataset.key);
   } else if (source.dataset.finalIndex !== undefined && target.dataset.finalIndex !== undefined) {
     placeFinalItem(finalSelection[Number(source.dataset.finalIndex)], Number(target.dataset.finalIndex));
   } else if (source.dataset.finalItemId && target.dataset.finalIndex !== undefined) {
@@ -2709,7 +2657,7 @@ document.addEventListener("pointerup", e => {
   }
 });
 
-hintPanel.addEventListener("pointercancel", e => {
+document.addEventListener("pointercancel", e => {
   if (letterDrag?.pointerId === e.pointerId) cleanupLetterDrag(letterDrag);
 });
 hintPanel.addEventListener("click", e => {
