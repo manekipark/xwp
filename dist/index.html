@@ -18,6 +18,11 @@
     --blue-dark: #176586;
     --blue-soft: #e4f6fd;
     --blue-border: #2c6f8e;
+    --panel-clue: #d58b6d;
+    --panel-alert: #d26770;
+    --panel-deep: #3c7fba;
+    --panel-teal: #61b4c5;
+    --panel-input: #5ca8d7;
     --cell: 34px;
   }
 
@@ -450,6 +455,7 @@
     box-shadow: 0 10px 26px rgba(0, 0, 0, .22);
   }
   .hint-panel::-webkit-scrollbar { display: none; }
+  .game-nav { display: none; }
   .hint-panel.has-final-gradient {
     border: 8px solid transparent;
     background:
@@ -483,6 +489,31 @@
   .hint-title { font-size: 28px; margin: 0; font-weight: 800; }
   .hint-body { font-size: 18px; line-height: 1.55; margin: 0; color: var(--ink); }
   .hint-body small { display: block; margin-top: 6px; font-size: 13px; opacity: .8; }
+  .clue-blanks {
+    display: inline-flex;
+    gap: 2px;
+    margin: 0 3px;
+    vertical-align: -.12em;
+  }
+  .clue-blank {
+    width: .9em;
+    height: .9em;
+    display: inline-block;
+    background: #d8efeb;
+  }
+  .clue-reference {
+    display: inline-block;
+    min-width: 5.2em;
+    margin: 0 3px;
+    padding: 1px 8px;
+    background: #9b9b9b;
+    color: #fff;
+    font-size: .78em;
+    font-weight: 800;
+    line-height: 1.35;
+    text-align: center;
+    vertical-align: .08em;
+  }
   .kana-toggle-btn {
     min-width: 88px;
     height: 42px;
@@ -868,6 +899,190 @@
     .final-question { font-size: 18px; }
     .final-answer { min-height: 40px; }
     .completion-card h2 { font-size: 24px; }
+
+    .game-screen.show-game-nav .hint-panel {
+      left: 0;
+      right: 0;
+      bottom: calc(64px + env(safe-area-inset-bottom));
+      width: auto;
+      min-height: 0;
+      max-height: none;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      border: 0;
+      border-radius: 26px 26px 0 0;
+      box-shadow: none;
+    }
+    .game-screen.show-game-nav .hint-panel.panel-input {
+      height: clamp(190px, 36dvh, 260px);
+      background: var(--panel-input);
+    }
+    .game-screen.show-game-nav.word-panel-collapsed .hint-panel.panel-input {
+      display: none;
+    }
+    .game-screen.show-game-nav .hint-panel.panel-clue {
+      height: clamp(300px, 55dvh, 430px);
+      background: var(--panel-clue);
+    }
+    .game-screen.show-game-nav .hint-panel.panel-input .clue-content {
+      display: none;
+    }
+    .game-screen.show-game-nav .hint-panel.panel-input .kana-keyboard {
+      display: block;
+      height: 100%;
+      padding: 30px 24px 18px;
+      overflow: auto;
+      scrollbar-width: none;
+    }
+    .game-screen.show-game-nav .hint-panel.panel-input .kana-keyboard::-webkit-scrollbar {
+      display: none;
+    }
+    .game-screen.show-game-nav .hint-panel.panel-input .kana-keys {
+      justify-content: center;
+      align-content: flex-start;
+      gap: 12px;
+    }
+    .game-screen.show-game-nav .hint-panel.panel-input .kana-key {
+      min-width: 52px;
+      height: 52px;
+      font-size: 22px;
+    }
+    .game-screen.show-game-nav .hint-panel.panel-input .answer-tools {
+      position: absolute;
+      left: 18px;
+      right: 18px;
+      bottom: 12px;
+      margin: 0;
+      pointer-events: none;
+    }
+    .game-screen.show-game-nav .hint-panel.panel-clue .clue-content {
+      width: min(calc(100% - 44px), 560px);
+      max-height: calc(100% - 48px);
+      margin: 28px auto 20px;
+      padding: 20px 22px 16px;
+      display: flex;
+      flex-direction: column;
+      overflow: auto;
+      scrollbar-width: none;
+      border-radius: 8px;
+      background: #fffdf8;
+      color: var(--ink);
+    }
+    .game-screen.show-game-nav .hint-panel.panel-clue .clue-content::-webkit-scrollbar {
+      display: none;
+    }
+    .game-screen.show-game-nav .hint-panel.panel-clue .hint-head {
+      position: static;
+      display: contents;
+      background: transparent;
+      padding: 0;
+    }
+    .game-screen.show-game-nav .hint-panel.panel-clue .hint-title-row {
+      display: none;
+    }
+    .game-screen.show-game-nav .hint-panel.panel-clue .hint-body {
+      order: 1;
+      margin: 0;
+      padding: 0;
+      background: transparent;
+      font-size: 20px;
+      line-height: 1.55;
+      text-align: left;
+    }
+    .game-screen.show-game-nav .hint-panel.panel-clue .hint-body small {
+      display: none;
+    }
+    .game-screen.show-game-nav .hint-panel.panel-clue .hint-head-actions {
+      order: 2;
+      justify-content: center;
+      margin-top: 16px;
+    }
+    .game-screen.show-game-nav .hint-panel.panel-clue .kana-toggle-btn {
+      min-width: 142px;
+      min-height: 44px;
+      border-color: #5d382d;
+      background: var(--panel-clue);
+      color: #fff;
+      font-size: 17px;
+      box-shadow: 0 3px 0 #9e5e47;
+    }
+    .game-screen.show-game-nav .hint-panel.panel-clue .kana-keyboard,
+    .game-screen.show-game-nav .hint-panel.panel-clue .answer-tools,
+    .game-screen.show-game-nav .keyboard-actions {
+      display: none;
+    }
+    .game-screen.show-game-nav .game-nav {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 11;
+      height: calc(64px + env(safe-area-inset-bottom));
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      align-items: start;
+      gap: 2px;
+      padding: 0 24px env(safe-area-inset-bottom);
+      border: 0;
+      border-top: 1px solid #dbe3e7;
+      background: #fff;
+      box-shadow: none;
+    }
+    .game-nav-button {
+      min-width: 0;
+      height: 68px;
+      display: grid;
+      grid-template-rows: 48px 18px;
+      place-items: center;
+      gap: 0;
+      border: 0;
+      background: transparent;
+      color: #34383a;
+      padding: 0 4px;
+      font-size: 12px;
+      font-weight: 800;
+      transform: translateY(-22px);
+    }
+    .game-nav-icon {
+      width: 52px;
+      height: 52px;
+      display: grid;
+      place-items: center;
+      border: 2px solid #d4dce0;
+      border-radius: 50%;
+      background: #fff;
+      color: var(--panel-deep);
+      line-height: 1;
+      box-shadow: 0 2px 4px rgba(38, 72, 88, .12);
+    }
+    .game-nav-icon svg {
+      width: 29px;
+      height: 29px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2.4;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    #inputViewBtn .game-nav-icon,
+    #mapNavBtn .game-nav-icon {
+      color: var(--panel-clue);
+    }
+    .game-nav-button[aria-selected="true"] {
+      color: #174e68;
+    }
+    .game-nav-button[aria-selected="true"] .game-nav-icon {
+      border-color: currentColor;
+      box-shadow: 0 0 0 3px rgba(60, 127, 186, .18), 0 3px 5px rgba(38, 72, 88, .16);
+    }
+    #inputViewBtn[aria-selected="true"] .game-nav-icon {
+      box-shadow: 0 0 0 3px rgba(213, 139, 109, .2), 0 3px 5px rgba(38, 72, 88, .16);
+    }
+    .game-nav-button:disabled {
+      cursor: default;
+      opacity: .35;
+    }
   }
   .tool-button { min-width: 44px; min-height: 44px; border: 2px solid var(--blue-border); border-radius: 8px; background: #f7fdff; color: #174e68; font-weight: 700; padding: 6px 10px; }
   button:focus-visible, input:focus-visible { outline: 3px solid #174e68; outline-offset: 3px; }
@@ -967,19 +1182,21 @@
           </div>
         </div>
       </section>
-      <aside class="hint-panel">
-        <div class="hint-head">
-          <div class="hint-title-row">
-            <h2 id="hintTitle" class="hint-title">カギ</h2>
-            <div id="directionSwitch" class="direction-switch" aria-label="交差するカギへの切替"></div>
+      <aside class="hint-panel panel-input">
+        <div class="clue-content">
+          <div class="hint-head">
+            <div class="hint-title-row">
+              <h2 id="hintTitle" class="hint-title">カギ</h2>
+              <div id="directionSwitch" class="direction-switch" aria-label="交差するカギへの切替"></div>
+            </div>
+            <div class="hint-head-actions">
+              <button id="finalBackBtn" class="clue-map-btn hidden" type="button">もどる</button>
+              <button id="resumeFinalBtn" class="clue-map-btn hidden" type="button">もどる</button>
+              <button id="kanaToggleBtn" class="kana-toggle-btn" type="button" aria-pressed="false" aria-label="問題文をひらがなにする">ひらがなにする</button>
+            </div>
           </div>
-          <div class="hint-head-actions">
-            <button id="finalBackBtn" class="clue-map-btn hidden" type="button">もどる</button>
-            <button id="resumeFinalBtn" class="clue-map-btn hidden" type="button">もどる</button>
-            <button id="kanaToggleBtn" class="kana-toggle-btn" type="button" aria-pressed="false" aria-label="問題文をひらがなにする">ひらがな</button>
-          </div>
+          <p id="hintBody" class="hint-body"></p>
         </div>
-        <p id="hintBody" class="hint-body"></p>
         <section id="kanaKeyboard" class="kana-keyboard is-empty" aria-label="文字入力">
           <div id="kanaKeys" class="kana-keys"></div>
           <div class="keyboard-actions">
@@ -998,6 +1215,26 @@
           <span id="answerStatus" class="answer-status" role="status" aria-live="polite"></span>
         </div>
       </aside>
+      <nav id="gameNav" class="game-nav" aria-label="ゲーム画面の切り替え">
+        <button id="inputViewBtn" class="game-nav-button" type="button" aria-selected="false" aria-label="カギの問題文を表示">
+          <span class="game-nav-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><circle cx="7.5" cy="15.5" r="5.5"></circle><path d="m21 2-9.6 9.6"></path><path d="m15.5 7.5 3 3L22 7l-3-3"></path></svg>
+          </span>
+          <span>カギ</span>
+        </button>
+        <button id="clueViewBtn" class="game-nav-button" type="button" aria-selected="true" aria-label="ワードの文字候補を表示">
+          <span class="game-nav-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"></rect><path d="M3 12h18M12 3v18"></path></svg>
+          </span>
+          <span>ワード</span>
+        </button>
+        <button id="mapNavBtn" class="game-nav-button" type="button" aria-selected="false" aria-label="Googleマップでこの場所への徒歩経路を開く">
+          <span class="game-nav-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+          </span>
+          <span>マップ</span>
+        </button>
+      </nav>
       <section id="completionModal" class="completion-modal hidden" role="dialog" aria-modal="true" aria-labelledby="completionTitle">
         <div class="completion-card">
           <h2 id="completionTitle">全問正解！</h2>
@@ -1187,6 +1424,11 @@ const resumeFinalBtn = document.getElementById("resumeFinalBtn");
 const mapBackBtn = document.getElementById("mapBackBtn");
 const mapDestinationPin = document.getElementById("mapDestinationPin");
 const hintPanel = document.querySelector(".hint-panel");
+const gameScreenElement = document.getElementById("gameScreen");
+const gameNav = document.getElementById("gameNav");
+const inputViewBtn = document.getElementById("inputViewBtn");
+const clueViewBtn = document.getElementById("clueViewBtn");
+const mapNavBtn = document.getElementById("mapNavBtn");
 const kanaKeyboard = document.getElementById("kanaKeyboard");
 const kanaKeys = document.getElementById("kanaKeys");
 const finalChallenge = document.getElementById("finalChallenge");
@@ -1230,6 +1472,7 @@ let finalMoveIndex = null;
 let finalSlotTap = { index: null, time: 0 };
 let finalSolvedAnnounced = false;
 let clueReadingMode = false;
+let mobilePanelView = "input";
 
 function key(r, c) { return `${r},${c}`; }
 function wordCells(w) {
@@ -1260,10 +1503,12 @@ function isWordSolved(w) {
 function clueFor(w) {
   const clueSet = clueReadingMode ? cluesHiragana : clues;
   const clue = clueSet[w.id] || clueSet[w.alias] || (clueReadingMode ? "このかぎはかくにんちゅうです。" : "このカギは確認中です。");
-  return clue.replace(/＜(ヨコ|タテ|よこ|たて)(\d+)＞/g, (match, dir, number) => {
+  const resolved = clue.replace(/＜(ヨコ|タテ|よこ|たて)(\d+)＞/g, (match, dir, number) => {
     const referenced = wordByReference(dir, number);
-    return isWordSolved(referenced) ? (clueReadingMode ? hiraganaKana(referenced.answer) : referenced.answer) : match;
+    if (isWordSolved(referenced)) return clueReadingMode ? hiraganaKana(referenced.answer) : referenced.answer;
+    return `<span class="clue-reference">${dir}${number}</span>`;
   });
+  return resolved.replace(/□+/g, blanks => `<span class="clue-blanks" aria-label="${blanks.length}文字の空欄">${[...blanks].map(() => '<span class="clue-blank" aria-hidden="true"></span>').join("")}</span>`);
 }
 
 function canonicalKana(value) {
@@ -1288,6 +1533,28 @@ function isAnswerCharacter(ch) {
 
 function activeWord() {
   return words.find(word => word.id === activeWordId);
+}
+
+function updateMobileGameNav() {
+  const showNav = currentMode === "answer" && !finalChallengeOpen;
+  gameScreenElement.classList.toggle("show-game-nav", showNav);
+  gameNav.classList.toggle("hidden", !showNav);
+
+  const hasMapDestination = Boolean(mapPoints[activeWord()?.id]);
+  mapNavBtn.disabled = !hasMapDestination;
+  mapNavBtn.setAttribute("aria-disabled", String(!hasMapDestination));
+  mapNavBtn.title = hasMapDestination ? "Googleマップでこの場所を開く" : "このカギには地図がありません";
+}
+
+function setMobilePanelView(view) {
+  if (finalChallengeOpen || !["input", "clue"].includes(view)) return;
+  mobilePanelView = view;
+  hintPanel.classList.toggle("panel-input", view === "input");
+  hintPanel.classList.toggle("panel-clue", view === "clue");
+  inputViewBtn.setAttribute("aria-selected", String(view === "clue"));
+  clueViewBtn.setAttribute("aria-selected", String(view === "input"));
+  updateSolvedPanelState();
+  requestAnimationFrame(focusActiveWord);
 }
 
 function activeWordContainsKey(k) {
@@ -1654,6 +1921,7 @@ function showFinalChallenge(resetSelection = true, announce = false) {
   }
   renderFinalChallenge();
   updateResumeFinalButton();
+  updateMobileGameNav();
   if (announce && !wasCompleted) completionModal.classList.remove("hidden");
 }
 
@@ -1677,10 +1945,12 @@ function hideFinalChallenge() {
   hintPanel.classList.remove("has-final-gradient");
   hintPanel.style.removeProperty("--final-gradient");
   updateResumeFinalButton();
+  updateMobileGameNav();
 }
 
 function returnToBoard() {
   finalChallengeOpen = false;
+  setMobilePanelView("clue");
   finalMoveIndex = null;
   finalSlotTap = { index: null, time: 0 };
   completionModal.classList.add("hidden");
@@ -1696,6 +1966,7 @@ function returnToBoard() {
     renderKeyboard();
   }
   updateResumeFinalButton();
+  updateMobileGameNav();
 }
 
 function stopConfetti() {
@@ -1819,6 +2090,7 @@ function updateHint(ids) {
     hintBody.textContent = "";
     goToMapBtn.classList.add("hidden");
     updateResumeFinalButton();
+    updateMobileGameNav();
     return;
   }
   const main = words.find(w => w.id === activeWordId) || items[0];
@@ -1829,6 +2101,7 @@ function updateHint(ids) {
   hintBody.innerHTML = `${clueFor(main)}${items.length > 1 ? `<small>${switchGuide}</small>` : ""}`;
   goToMapBtn.classList.toggle("hidden", !mapPoints[main.id]);
   updateResumeFinalButton();
+  updateMobileGameNav();
 }
 
 function openGoogleMapsDestination() {
@@ -1952,9 +2225,13 @@ function resetAnswers({ ask = true } = {}) {
 function boardVisibleBounds() {
   const rect = viewport.getBoundingClientRect();
   const panelRect = document.querySelector(".hint-panel").getBoundingClientRect();
-  const overlaps = panelRect.left < rect.right && panelRect.right > rect.left;
-  const panelTop = overlaps && panelRect.top > rect.top ? panelRect.top : rect.bottom;
-  const visibleHeight = Math.max(100, panelTop - rect.top - 14);
+  const navRect = gameNav.getBoundingClientRect();
+  const panelOverlaps = panelRect.width > 0 && panelRect.left < rect.right && panelRect.right > rect.left;
+  const navOverlaps = navRect.width > 0 && navRect.left < rect.right && navRect.right > rect.left;
+  const panelTop = panelOverlaps && panelRect.top > rect.top ? panelRect.top : rect.bottom;
+  const navTop = navOverlaps && navRect.top > rect.top ? navRect.top - 24 : rect.bottom;
+  const occlusionTop = Math.min(panelTop, navTop);
+  const visibleHeight = Math.max(100, occlusionTop - rect.top - 14);
   return {
     rect,
     left: -rect.width / 2,
@@ -2409,7 +2686,7 @@ function showTutorialOnce() {
 
 function toggleKanaDisplay() {
   clueReadingMode = !clueReadingMode;
-  kanaToggleBtn.textContent = clueReadingMode ? "漢字" : "ひらがな";
+  kanaToggleBtn.textContent = clueReadingMode ? "漢字にもどす" : "ひらがなにする";
   kanaToggleBtn.setAttribute("aria-pressed", String(clueReadingMode));
   kanaToggleBtn.setAttribute("aria-label", clueReadingMode ? "問題文を元の表記に戻す" : "問題文をひらがなにする");
   if (selectedKey && !finalChallengeOpen) {
@@ -2441,6 +2718,7 @@ function setMode(mode) {
     updateResumeFinalButton();
     renderKeyboard();
   }
+  updateMobileGameNav();
 }
 
 document.getElementById("startBtn").addEventListener("click", () => {
@@ -2454,6 +2732,9 @@ document.getElementById("startBtn").addEventListener("click", () => {
 answerTab.addEventListener("click", () => setMode("answer"));
 kanaToggleBtn.addEventListener("click", toggleKanaDisplay);
 goToMapBtn.addEventListener("click", openGoogleMapsDestination);
+inputViewBtn.addEventListener("click", () => setMobilePanelView("clue"));
+clueViewBtn.addEventListener("click", () => setMobilePanelView("input"));
+mapNavBtn.addEventListener("click", openGoogleMapsDestination);
 resumeFinalBtn.addEventListener("click", () => showFinalChallenge(false));
 mapBackBtn.addEventListener("click", () => setMode("answer"));
 finalBackBtn.addEventListener("click", returnToBoard);
@@ -2463,6 +2744,9 @@ window.addEventListener("resize", () => {
   centerBoard();
   if (currentMode === "map") centerMap();
 });
+
+setMobilePanelView(mobilePanelView);
+updateMobileGameNav();
 
 function colorName(color) {
   return ["紫", "青", "水色", "緑", "黄緑", "黄色", "オレンジ", "赤"][FINAL_COLORS.indexOf(color)] || "色つき";
@@ -2475,7 +2759,19 @@ function wordSolved(w) {
 function updateReviewUI() {
   const status = document.getElementById("answerStatus");
   const w = activeWord();
-  status.textContent = finalChallengeOpen ? "" : !w ? "" : wordSolved(w) ? "✓ このカギは正解" : wordCells(w).some(pos => { const value = inputForKey(key(pos.r, pos.c))?.value; return value && canonicalKana(value) !== pos.ch; }) ? "! ちがう文字があります" : "";
+  status.textContent = finalChallengeOpen || !w || wordSolved(w) ? "" : wordCells(w).some(pos => { const value = inputForKey(key(pos.r, pos.c))?.value; return value && canonicalKana(value) !== pos.ch; }) ? "! ちがう文字があります" : "";
+  updateSolvedPanelState();
+}
+
+function updateSolvedPanelState() {
+  const word = activeWord();
+  const shouldCollapse = currentMode === "answer"
+    && !finalChallengeOpen
+    && mobilePanelView === "input"
+    && Boolean(word && wordSolved(word));
+  const changed = gameScreenElement.classList.contains("word-panel-collapsed") !== shouldCollapse;
+  gameScreenElement.classList.toggle("word-panel-collapsed", shouldCollapse);
+  if (changed) requestAnimationFrame(focusActiveWord);
 }
 
 function renderDirectionSwitch(ids) {
